@@ -5681,17 +5681,50 @@ function getDataAndInsertHtml() {
           });
         }
         doms + "</div>";
+        // 自定义数量按钮
+        let numberButtonDom = `
+        <div class="fx_product_qty_box">
+        <div class="fx_secondary_title">Quantity</div>
+        <div class="fx-quantity-box">
+            <button class="fx-quantity-button fx-jian-button">-</button>
+            <input class="fx-quantity-input"  value="1" type="text" min="1",max="100000">
+            <button class="fx-quantity-button fx-jia-button">+</button>
+        </div>
+    </div>
+        `;
         // 渲染详情展示页面
         $(".product_single_price").after(doms);
+        $(".fx-details-bigBox").after(numberButtonDom);
         $(".product_single .input_attrs_box").remove();
-        // $(".product_qty_box").after(doms);
         checkSell();
-        $(".product_qty_box .add").on("click", () => {
-          console.log("我点击了 减少按钮");
+        // 减少按钮逻辑
+        $(".fx-jian-button").click(function () {
+          let value = 1;
+          let inputNumber = Number($(".fx-quantity-input").val());
+          value = inputNumber - 1;
+          if (value <= 0) {
+            value = 1;
+          }
+          $(".fx-quantity-input").val(value);
           checkSell();
         });
-        $(".product_qty_box .subtract").on("click", () => {
-          console.log("我点击了 增加按钮");
+        // 增加按钮逻辑
+        $(".fx-jia-button").click(function () {
+          let value = 1;
+          let inputNumber = Number($(".fx-quantity-input").val());
+          value = inputNumber + 1;
+          $(".fx-quantity-input").val(value);
+          checkSell();
+        });
+        // input失焦事件逻辑
+        $(".fx-quantity-input").blur(function () {
+          // 输入框失去焦点
+          let inputNumber = Number($(".fx-quantity-input").val());
+          if (!/^[1-9]{1,5}$/.test(inputNumber)) {
+            $(".fx-quantity-input").val(1);
+          } else {
+            $(".fx-quantity-input").val(inputNumber);
+          }
           checkSell();
         });
       },
@@ -5723,7 +5756,7 @@ function checkSell() {
     params.push(obj);
   }
   // 如果没有获取到数量 默认为1
-  let quantity = document.querySelector(".product_qty_num")?._value;
+  let quantity = Number($(".fx-quantity-input").val());
   if (typeof quantity !== "number") {
     quantity = 1;
   }
@@ -5741,7 +5774,7 @@ function checkSell() {
   });
   // 判断渲染的加入购物车按钮
   AddCartButtonStyle(stockIsNull, params);
-  // console.log("购物车参数对象",params ,stockIsNull);
+  console.log("购物车参数对象", params, stockIsNull);
 }
 // 加入购物车按钮操作判断
 function AddCartButtonStyle(stockIsNull, params) {
@@ -5772,29 +5805,34 @@ function AddCartButtonStyle(stockIsNull, params) {
     $(".product_single_add_button").remove();
     if ($(".product_single_add_button_disabledsoldout")?.length) {
       disAbleValue = textValue;
-      $(".product_single_add").append(disAbleButton);
+      $(".fx_product_qty_box").append(disAbleButton);
     } else {
       // stockIsNull 为false 说明有库存为空
       if (stockIsNull) {
-        $(".product_single_add").append(disAbleButton);
+        $(".fx_product_qty_box").append(disAbleButton);
       } else {
-        $(".product_single_add").append(addButton);
+        $(".fx_product_qty_box").append(addButton);
         // 重写点击逻辑
         $(".product_single_add_button").on("click", () => {
           buttonOnchilk(params);
         });
       }
     }
+    // 移除原本整个区域
+    $(".product_add_cart").remove();
   }
 }
 // 自定义购物车按钮点击函数
 function buttonOnchilk(params) {
   // console.log("传给mshop购物车接口的参数", params);
-  let quantity = document.querySelector(".product_qty_num");
+  let quantity = Number($(".fx-quantity-input").val());
   params.forEach((item) => {
-    item.quantity = quantity?._value;
+    item.quantity = quantity;
     if (item?.stock) {
       delete item.stock;
+    }
+    if (item?.imgLink) {
+      delete item.imgLink;
     }
   });
   let paramsObj = {
