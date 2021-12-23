@@ -53,26 +53,26 @@
           ,max="100000"
         />
         <button class="fx-quantity-button fx-jia-button">+</button>
+        <div class="divs">点击</div>
       </div>
     </div>
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
     <script language="javascript">
       $(function () {
-        console.log("1");  
+        // document.querySelector(".divs").onclick = function () {};
+        // return;
         const promise1 = new Promise((resolve, reject) => {
-          $.ajax({
-            accept: "application/json",
-            dataType: "json",
-            method: "get",
-            url: `http://127.0.0.1:3030/test`,
-            data: {word:'promise1'},
-            success: function (res) {
-              resolve(res);
+          fetch("http://127.0.0.1:3030/test", {
+            method: "POST", // or 'PUT'
+            headers: {
+              "Content-Type": "application/json",
             },
-            error: function (error) {
-              reject(error);
-            },
-          });
+            body: JSON.stringify({ name: "jimmy", age: "18" }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              resolve(data);
+            });
         });
         const promise2 = new Promise((resolve, reject) => {
           $.ajax({
@@ -91,12 +91,12 @@
         });
         Promise.all([promise1, promise2])
           .then((result) => {
-            console.log("promise all 执行结果",result);
+            console.log("promise all 执行结果", result);
           })
           .catch((error) => {
             console.log(error);
           });
-      }); 
+      });
     </script>
   </body>
 </html>

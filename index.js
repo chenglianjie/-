@@ -5572,44 +5572,163 @@
     S
   );
 });
+
+// 脚本开始
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top";
 const ASSET_ENDPOINT = ".";
 let arr = [];
+let comboId = "";
 let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连续频繁点击
 $(function () {
-  // 插入css
+  console.log("js脚本执行了");
+  let { pathname = "" } = window.location;
+  // 购物车是弹窗和侧边弹出的情况
+  if (document.querySelector(".inlineCart")) {
+    console.log("进入了购物车是弹窗和侧边弹出的情况");
+    $(".header-right .cart").on("click", () => {
+      console.log("我点击了购物车按钮");
+      carPopUptAndCouponJudge();
+    });
+    return;
+  }
+  // 商品详情页页面逻辑
+  if (pathname.indexOf("products") !== -1) {
+    // 插入商品详情css
+    appendCss();
+    // 获取详情数据 并插入html
+    getDataAndInsertHtml();
+    // 自定义下拉框逻辑
+    $(".fx-select").on("click", (event) => {
+      $(".fx-list").css({ visibility: "hidden" });
+      // 获取当前节点的id
+      let currentTargetId = event.target.id;
+      event.stopPropagation(); // 阻止事件冒泡
+      if ($(`#${currentTargetId}`).next().css("visibility") === "hidden") {
+        $(`#${currentTargetId}`).next().css({ visibility: "visible" });
+      } else {
+        $(`#${currentTargetId}`).next().css({ visibility: "hidden" });
+      }
+    });
+    // 监听dom逻辑
+    $(document).on("click", () => {
+      $(".fx-list").css({ visibility: "hidden" });
+    });
+    // 点击下拉列表的逻辑
+    $(".fx-list").on("click", (event) => {
+      // 获取当前点击的id
+      let id = event.currentTarget.id;
+      // console.log("获取点击的id", id);
+      let value = event.target.innerHTML || "";
+      // console.log("e?.target?.innerHTML", value);
+      $(`#${id}`).prev().html(value);
+      $(`#${id}`).parent().attr("data-value", value);
+      checkSell();
+    });
+    // 自定义下拉框逻辑 end
+  }
+  // 购物车是单独页面情况
+  if (pathname.indexOf("cart") !== -1) {
+    cartAndCouponJudge();
+    return;
+  }
+});
+
+// 购物车优惠卷逻辑判断 购物车是单独页面的情况
+function cartAndCouponJudge() {
+  console.log("进入购物车是单独页面的情况");
+  // 插入商品详情css
   appendCss();
-  // 获取详情数据 并插入html
-  getDataAndInsertHtml();
-  // 自定义下拉框逻辑
-  $(".fx-select").on("click", (event) => {
-    $(".fx-list").css({ visibility: "hidden" });
-    // 获取当前节点的id
-    let currentTargetId = event.target.id;
-    event.stopPropagation(); // 阻止事件冒泡
-    if ($(`#${currentTargetId}`).next().css("visibility") === "hidden") {
-      $(`#${currentTargetId}`).next().css({ visibility: "visible" });
-    } else {
-      $(`#${currentTargetId}`).next().css({ visibility: "hidden" });
+  // 获取checkout旧按钮文字
+  let checkoutButtonTest = $(".cart-info .checkout").html();
+  // 给checkout旧按钮添加一个新的类名
+  $(".cart-info .checkout").addClass("fx-checkout-old");
+  // 创造一个新的checkout按钮
+  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
+  // 插入新的按钮
+  $(".cart-info .cart-info_price").after(newCheckoutButtonDom);
+  // 老按钮隐藏
+  $(".cart-info .fx-checkout-old").css({ visibility: "hidden" });
+  // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
+  $(".fx-checkout").on("click", () => {
+    requestCartAndCheckedCoupon();
+  });
+}
+// 购物车优惠卷逻辑判断 购物车是弹窗或抽屉的情况
+function carPopUptAndCouponJudge() {
+  appendCss();
+  console.log("我进来了购物车弹出方式");
+  $(".inlineCart .checkout").addClass("fx-checkout-old");
+  let checkoutButtonTest = $(
+    ".inlineCart .checkout_flex .fx-checkout-old span"
+  ).html();
+  console.log("按钮文字", checkoutButtonTest);
+  // 新的按钮
+  let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
+  // 插入新的按钮
+  $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
+  // 老按钮隐藏
+  $(".inlineCart .checkout").css({ visibility: "hidden" });
+  $(".inlineCart .fx-checkout").css({ visibility: "visible" });
+  // 监听remove 判断购物车是否为空
+  monitorCart();
+  // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
+  $(".fx-checkout").on("click", () => {
+    requestCartAndCheckedCoupon();
+  });
+}
+// 请求购物车接口以及验证优惠卷逻辑接口
+function requestCartAndCheckedCoupon() {
+  // 请求购物车详情接口
+  fetch(`${origin}/api/store/cart`, {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("获取购物车详情", data);
+      if (Array.isArray(data.cart) && data.cart.length === 0) {
+        // 购物车为空 直接执行老按钮逻辑
+        document.querySelector(".fx-checkout-old").click();
+        return;
+      }
+      let product_id = Object.values(data.cart).map((item) => {
+        return item.product_id;
+      });
+      let code = data.coupons.map((item) => {
+        return item.code;
+      });
+      console.log("id和code", product_id, code);
+      // 请求检查优惠卷接口
+      fetch(
+        `${origin}/api/store/cart/coupons?code=${code[0]}&cart_hash=${data.hash}`,
+        {
+          method: "DELETE",
+        }
+      )
+        .then((response) => response.json())
+        .then((res) => {
+          console.log("删除优惠卷接口", res);
+          if (res.code === 200) {
+            // 执行老按钮逻辑
+            // document.querySelector(".fx-checkout-old").click();
+          }
+        });
+    });
+}
+// 监听remove 判断购物车是否为空
+function monitorCart() {
+  $(".inlineCart .remove .text-uppercase").on("click", () => {
+    console.log(
+      "empty节点",
+      $(".inlineCart .emptyCart"),
+      $(".inlineCart .emptyCart").length
+    );
+    if ($(".inlineCart .emptyCart")) {
+      console.log("我进入了 购物车为空的情况");
+      $(".inlineCart .fx-checkout-old").css({ visibility: "visible" });
+      $(".inlineCart .fx-checkout").css({ visibility: "hidden" });
     }
   });
-  // 监听dom逻辑
-  $(document).on("click", () => {
-    $(".fx-list").css({ visibility: "hidden" });
-  });
-  // 点击下拉列表的逻辑
-  $(".fx-list").on("click", (event) => {
-    // 获取当前点击的id
-    let id = event.currentTarget.id;
-    // console.log("获取点击的id", id);
-    let value = event.target.innerHTML || "";
-    // console.log("e?.target?.innerHTML", value);
-    $(`#${id}`).prev().html(value);
-    $(`#${id}`).parent().attr("data-value", value);
-    checkSell();
-  });
-  // 自定义下拉框逻辑 end
-});
+}
 // 获取数据以及插入html
 function getDataAndInsertHtml() {
   const shop = window.location.host || "'powder70.hotishop.com'";
@@ -5632,6 +5751,7 @@ function getDataAndInsertHtml() {
         let doms = `<div class="fx-details-bigBox">`;
         arr = res?.data?.data || [];
         console.log("详情数据data", res);
+        comboId = res?.data?.comboInfo?.id;
         // 判断不是combo 直接return
         if (!res?.data?.is_combo) {
           return;
@@ -5858,32 +5978,92 @@ function indexOf(arr, str) {
 function jumpTocart(params) {
   if (canClickAddButton) {
     canClickAddButton = false;
-    // console.log("canClickAddButton 点击", canClickAddButton);
     let origin = window.location.origin || "https://powder70.hotishop.com";
-    $.ajax({
-      accept: "application/json",
-      dataType: "json",
-      method: "post",
-      url: `${origin}/api/store/batchCart`,
-      data: params,
-      success: function (res) {
-        canClickAddButton = true;
-        // console.log("canClickAddButton 添加购物车成功过后", canClickAddButton);
-        // 移除监听
-        $(document).off();
-        $(".fx-list").off();
-        $(".product_qty_box .add").off();
-        $(".product_qty_box .subtract").off();
-        // console.log("添加到购物车结果", res);
-        let url = origin + "/cart";
-        window.location.href = url;
-      },
-      error: function (error) {
-        // console.log("失败回调", error);
-        let errorMsg = error?.responseJSON?.message || "接口错误，请联系Mshop";
-        console.log("接口失败原因", errorMsg);
-      },
+    console.log("购物车参数", params, comboId);
+    let cartInfo = params.product || [];
+    cartInfo.forEach((item) => {
+      delete item.imgLink;
     });
+    const shop = window.location.host || "'powder70.hotishop.com'";
+    // 创建优惠卷参数
+    let createCouponObj = { id: comboId, cartInfo, shop };
+    // 创建优惠卷
+    const createCouponPromise = new Promise((resolve, reject) => {
+      $.ajax({
+        accept: "application/json",
+        dataType: "json",
+        method: "post",
+        url: `${API_ENDPOINT}/api/createCoupon`,
+        data: createCouponObj,
+        success: function (res) {
+          resolve(res);
+        },
+        error: function (error) {
+          reject(error);
+        },
+      });
+      // fetch(`${API_ENDPOINT}/api/createCoupon`, {
+      //   method: "POST", // or 'PUT'
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(createCouponObj),
+      // })
+      //   .then((response) => response.json())
+      //   .then((data) => {
+      //     resolve(data);
+      //   });
+    });
+    // 添加到购物车promise
+    const addToCartpromise = new Promise((resolve, reject) => {
+      $.ajax({
+        accept: "application/json",
+        dataType: "json",
+        method: "post",
+        url: `${origin}/api/store/batchCart`,
+        data: params,
+        success: function (res) {
+          canClickAddButton = true;
+          resolve(res);
+        },
+        error: function (error) {
+          reject(error);
+        },
+      });
+    });
+    // 前两个接口执行结果
+    Promise.all([addToCartpromise, createCouponPromise])
+      .then((result) => {
+        console.log("promise all 执行结果", result);
+        if (Array.isArray(result) && result.length === 2) {
+          let hash = result[0].hash;
+          let code = result[1].data.code;
+          if (hash && code) {
+            // 调用使用优惠卷接口
+            fetch(`${origin}/api/store/cart/coupons?cart_hash=${hash}`, {
+              method: "POST", // or 'PUT'
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ code }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                console.log("使用优惠卷", data);
+                // 添加购物车成功过后，移除监听以及跳转
+                $(document).off();
+                $(".fx-list").off();
+                $(".product_qty_box .add").off();
+                $(".product_qty_box .subtract").off();
+                let url = origin + "/cart";
+                window.location.href = url;
+              });
+          }
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 }
 // 详情页的插入自己写的css

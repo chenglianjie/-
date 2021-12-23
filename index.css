@@ -127,3 +127,19 @@
 .product_single_box .product_single_add[data-v-0e0fef34] {
   margin-top: 20px;
 }
+
+.fx-checkout {
+  width: 100%;
+  display: inline-block;
+  padding: 14px 20px;
+  border: none;
+  line-height: 1;
+  background: #c90d0d;
+  color: white;
+  font-weight: 600;
+  font-style: normal;
+  text-transform: uppercase;
+  font-size: 16px;
+  border-radius: 0;
+  cursor: pointer;
+}
