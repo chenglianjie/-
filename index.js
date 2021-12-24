@@ -5575,6 +5575,8 @@
 
 // 脚本开始
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top";
+const origin = window.location.origin || "https://powder70.hotishop.com";
+const shop = window.location.host || "'powder70.hotishop.com'";
 const ASSET_ENDPOINT = ".";
 let arr = [];
 let comboId = "";
@@ -5589,10 +5591,10 @@ $(function () {
       console.log("我点击了购物车按钮");
       carPopUptAndCouponJudge();
     });
-    return;
   }
   // 商品详情页页面逻辑
   if (pathname.indexOf("products") !== -1) {
+    console.log("进入到商品详情页里了");
     // 插入商品详情css
     appendCss();
     // 获取详情数据 并插入html
@@ -5644,8 +5646,13 @@ function cartAndCouponJudge() {
   $(".cart-info .checkout").addClass("fx-checkout-old");
   // 创造一个新的checkout按钮
   let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
-  // 插入新的按钮
-  $(".cart-info .cart-info_price").after(newCheckoutButtonDom);
+  if (document.querySelector("#discount_price")) {
+    // 插入新的按钮
+    $(".cart-info #discount_price").after(newCheckoutButtonDom);
+  } else {
+    // 插入新的按钮
+    $(".cart-info .cart-info_price").after(newCheckoutButtonDom);
+  }
   // 老按钮隐藏
   $(".cart-info .fx-checkout-old").css({ visibility: "hidden" });
   // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
@@ -5655,8 +5662,17 @@ function cartAndCouponJudge() {
 }
 // 购物车优惠卷逻辑判断 购物车是弹窗或抽屉的情况
 function carPopUptAndCouponJudge() {
+  // 插入css
   appendCss();
   console.log("我进来了购物车弹出方式");
+  console.log(
+    "empty节点存在嘛 进来的时候验证",
+    document.querySelector(".inlineCart .emptyCart")
+  );
+  if (document.querySelector(".inlineCart .emptyCart")) {
+    console.log("购物车为空，不执行下面的逻辑了");
+    return;
+  }
   $(".inlineCart .checkout").addClass("fx-checkout-old");
   let checkoutButtonTest = $(
     ".inlineCart .checkout_flex .fx-checkout-old span"
@@ -5664,8 +5680,10 @@ function carPopUptAndCouponJudge() {
   console.log("按钮文字", checkoutButtonTest);
   // 新的按钮
   let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
-  // 插入新的按钮
-  $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
+  if (!document.querySelector(".fx-checkout")) {
+    // 插入新的按钮
+    $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
+  }
   // 老按钮隐藏
   $(".inlineCart .checkout").css({ visibility: "hidden" });
   $(".inlineCart .fx-checkout").css({ visibility: "visible" });
@@ -5685,6 +5703,7 @@ function requestCartAndCheckedCoupon() {
     .then((response) => response.json())
     .then((data) => {
       console.log("获取购物车详情", data);
+      let hash = data.hash;
       if (Array.isArray(data.cart) && data.cart.length === 0) {
         // 购物车为空 直接执行老按钮逻辑
         document.querySelector(".fx-checkout-old").click();
@@ -5693,23 +5712,60 @@ function requestCartAndCheckedCoupon() {
       let product_id = Object.values(data.cart).map((item) => {
         return item.product_id;
       });
-      let code = data.coupons.map((item) => {
-        return item.code;
+      // code 和code描述
+      let codeDescript = "";
+      let code = "";
+      if (document.querySelector("#discount_price")) {
+        codeDescript = $("#discount_price .secondary_title").html();
+        let index = codeDescript.indexOf("</span>");
+        codeDescript = codeDescript.slice(index).replace("</span>", "").trim();
+        // codeDescript2 = $("#discount_price .secondary_title").text();
+        console.log("code描述符", codeDescript, index);
+      }
+      let codeArr = data.coupons.filter((item) => {
+        return item.description === codeDescript;
       });
+      if (codeArr.length > 0) {
+        code = codeArr[0].code;
+      }
       console.log("id和code", product_id, code);
+      // 如果没用发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
+      if (!code) {
+        // 执行老按钮逻辑
+        document.querySelector(".fx-checkout-old").click();
+        return;
+      }
       // 请求检查优惠卷接口
-      fetch(
-        `${origin}/api/store/cart/coupons?code=${code[0]}&cart_hash=${data.hash}`,
-        {
-          method: "DELETE",
-        }
-      )
+      fetch(`${API_ENDPOINT}/api/checkCoupon`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code, shop, ids: product_id }),
+      })
         .then((response) => response.json())
         .then((res) => {
-          console.log("删除优惠卷接口", res);
+          console.log("请求检查优惠卷接口", res);
           if (res.code === 200) {
-            // 执行老按钮逻辑
-            // document.querySelector(".fx-checkout-old").click();
+            let { status } = res.data;
+            // 如果优惠卷 不可用 就删除
+            if (!status) {
+              fetch(
+                `${origin}/api/store/cart/coupons/${code}?cart_hash=${hash}`,
+                {
+                  method: "DELETE",
+                }
+              )
+                .then((response) => response.json())
+                .then((res) => {
+                  console.log("删除优惠卷", res);
+                  // 执行老按钮逻辑
+                  document.querySelector(".fx-checkout-old").click();
+                });
+            } else {
+              // 执行老按钮逻辑
+              document.querySelector(".fx-checkout-old").click();
+            }
           }
         });
     });
@@ -5717,13 +5773,11 @@ function requestCartAndCheckedCoupon() {
 // 监听remove 判断购物车是否为空
 function monitorCart() {
   $(".inlineCart .remove .text-uppercase").on("click", () => {
-    console.log(
-      "empty节点",
-      $(".inlineCart .emptyCart"),
-      $(".inlineCart .emptyCart").length
-    );
-    if ($(".inlineCart .emptyCart")) {
-      console.log("我进入了 购物车为空的情况");
+    console.log("我点击了购物车里面的remove按钮");
+    let removeNumber = document.querySelectorAll(
+      ".remove .text-uppercase"
+    ).length;
+    if (removeNumber <= 1) {
       $(".inlineCart .fx-checkout-old").css({ visibility: "visible" });
       $(".inlineCart .fx-checkout").css({ visibility: "hidden" });
     }
@@ -5754,6 +5808,16 @@ function getDataAndInsertHtml() {
         comboId = res?.data?.comboInfo?.id;
         // 判断不是combo 直接return
         if (!res?.data?.is_combo) {
+          console.log("进入到不是combo逻辑，给加入购物车增加点击事件");
+          // 判断购物车方式 是不是弹出框或者抽屉的方式
+          if (document.querySelector(".inlineCart")) {
+            document
+              .querySelector(".product_single_add .product_single_add_button")
+              .addEventListener("click", () => {
+                carPopUptAndCouponJudge();
+                console.log("我点击了加入购物车按钮 购物车是弹出形式 ");
+              });
+          }
           return;
         }
         if (Array.isArray(arr) && arr.length > 0) {
@@ -6038,6 +6102,7 @@ function jumpTocart(params) {
         if (Array.isArray(result) && result.length === 2) {
           let hash = result[0].hash;
           let code = result[1].data.code;
+          console.log("hash和code", hash, code);
           if (hash && code) {
             // 调用使用优惠卷接口
             fetch(`${origin}/api/store/cart/coupons?cart_hash=${hash}`, {
@@ -6058,6 +6123,9 @@ function jumpTocart(params) {
                 let url = origin + "/cart";
                 window.location.href = url;
               });
+          } else {
+            let url = origin + "/cart";
+            window.location.href = url;
           }
         }
       })
