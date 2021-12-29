@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="stylesheet" href="./test.css" />
   </head>
   <style>
     .fx-quantity-button {
@@ -41,62 +42,190 @@
     }
   </style>
   <body>
-    <div class="fx_product_qty_box">
-      <div class="fx_secondary_title">Quantity</div>
-      <div class="fx-quantity-box">
-        <button class="fx-quantity-button fx-jian-button">-</button>
-        <input
-          class="fx-quantity-input"
-          value="1"
-          type="text"
-          min="1"
-          ,max="100000"
-        />
-        <button class="fx-quantity-button fx-jia-button">+</button>
-        <div class="divs">点击</div>
-      </div>
-    </div>
-    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
-    <script language="javascript">
-      $(function () {
-        // document.querySelector(".divs").onclick = function () {};
-        // return;
-        const promise1 = new Promise((resolve, reject) => {
-          fetch("http://127.0.0.1:3030/test", {
-            method: "POST", // or 'PUT'
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name: "jimmy", age: "18" }),
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              resolve(data);
-            });
-        });
-        const promise2 = new Promise((resolve, reject) => {
-          $.ajax({
-            accept: "application/json",
-            dataType: "json",
-            method: "get",
-            url: `http://127.0.0.1:3030/test2`,
-            // data: params,
-            success: function (res) {
-              resolve(res);
-            },
-            error: function (error) {
-              reject(error);
-            },
-          });
-        });
-        Promise.all([promise1, promise2])
-          .then((result) => {
-            console.log("promise all 执行结果", result);
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      });
-    </script>
+    <div class="product_single_price">$1997</div>
+    <!-- <div class="fx-Mobile-type-box">
+      <div class="fx-Mobile-type-title">color</div>
+      <div class="fx-Mobile-type-item">Red</div>
+    </div> -->
   </body>
 </html>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+<script language="javascript">
+  let arr = [
+    {
+      id: 14165,
+      title: "我是title",
+      image:
+        "https://cdn.wshopon.com/assets/2021/11/e245aa655dee62d8861f4f96b303bc7d.jpg",
+      variant_attrs: [
+        { name: "color", value: ["red", "green"] },
+        { name: "size", value: ["XXXL", "x"] },
+      ],
+    },
+    {
+      id: 14166,
+      title: "我是title2222222222222222",
+      image:
+        "https://cdn.wshopon.com/assets/2021/11/e245aa655dee62d8861f4f96b303bc7d.jpg",
+      variant_attrs: [
+        { name: "color", value: ["yellow", "Pink", "white", "Light Green"] },
+        { name: "size", value: ["XXXL", "x", "L", "XL", "S", "M"] },
+      ],
+    },
+  ];
+  // 节流函数
+  function throttle(func, wait = 500) {
+    let timeout;
+    return function () {
+      let context = this;
+      let args = arguments;
+      if (!timeout) {
+        timeout = setTimeout(() => {
+          timeout = null;
+          func.apply(context, args);
+        }, wait);
+      }
+    };
+  }
+  // 移动端渲染逻辑
+  function mobileRender() {
+    let doms = ` <div class="fx-Mobile-type-Content">`;
+    // 循环生成dom结构
+    if (Array.isArray(arr) && arr.length > 0) {
+      arr.forEach((item, index) => {
+        let img = item?.image ? item?.image : `${ASSET_ENDPOINT}/default.png`;
+        doms += `
+                <div class="fx-Mobile-type-box" data-index=${index}>
+                <div class="fx-Mobile-leftImg">
+                    <img class="fx-Mobile-leftImgSelf fx-Mobile-leftImgSelf${index}" src=${img} alt=""  data-index=${index}>
+                </div>
+                <div class="fx-Mobile-rightBox">
+                    <div class="fx-Mobile-type-title">
+                        ${item?.title}
+                    </div>
+                    <div class="fx-color-size-box">
+                     ${item?.variant_attrs.reduce((prev, currents, index2) => {
+                       return (
+                         prev +
+                         `<div class="">
+                         <div class="fx-Mobile-smalltitle" ">
+                             ${currents?.name}
+                         </div>
+                         <div class="fx-Mobile-type-item-box fx-Mobile-type-item-boxs${index}" data-value=${
+                           currents?.name
+                         }:${currents?.value[0]}>
+                            ${currents?.value?.reduce(
+                              (prev, current, index3) => {
+                                return (
+                                  prev +
+                                  `
+                              <div class="fx-Mobile-type-item fx-Mobile-type-item${index2}" data-value=${currents.name}:${current} data-keys=${index}${index2} id=${index}${index2}${index3} key=${index3} >${current}</div>
+                              `
+                                );
+                              },
+                              ""
+                            )}
+                          </div>
+                      </div>
+                      `
+                       );
+                     }, "")}
+                    </div>
+                </div>
+            </div>
+                `;
+      });
+    }
+    doms = doms + "</div>";
+    // 渲染详情展示页面
+    $(".product_single_price").after(doms);
+    // 默认给第一个选中
+    $(".fx-Mobile-type-item[key=0]").addClass("fx-Mobile-type-item-checked");
+    // 点击选择具体的color或颜色等
+    $(".fx-Mobile-type-item").on("click", (event) => {
+      // 获取当前点击的id
+      let id = event.currentTarget.id;
+      let value = $(`#${id}`).attr("data-value");
+      // let value = event.target.innerHTML || "";
+      let keys = $(`#${id}`).attr("data-keys");
+      $(`#${id}`).parent().attr("data-value", value);
+      // 点击当前选中，移除同级已经选中的
+      console.log("id和datakeys", id, keys);
+      $(`.fx-Mobile-type-item[data-keys=${keys}]`).removeClass(
+        "fx-Mobile-type-item-checked"
+      );
+      $(`#${id}`).addClass("fx-Mobile-type-item-checked");
+      mobileCheckSell();
+    });
+  }
+  // 移动端检查售卖
+  function mobileCheckSell() {
+    // 参数对象
+    let params = [];
+    for (let i = 0; i < arr.length; i++) {
+      let str = "";
+      $(`.fx-Mobile-type-item-boxs${i}`).each((index, dom) => {
+        let val = $(dom).attr("data-value");
+        str += val;
+      });
+      let arrId = indexOf(arr[i].variants, str);
+      // 得到商品id和变种id
+      let product_id = arr[i]?.ID;
+      let variant_id = arr[i]["variants"][arrId]?.ID;
+      let stock = arr[i]["variants"][arrId]?.stock || arr[i]?.stock;
+      let img = arr[i]["variants"][arrId]?.image;
+      let obj = { product_id, variant_id, stock, imgLink: img };
+      if (!obj.variant_id) {
+        delete obj.variant_id;
+      }
+      console.log("移动端筛选参数", obj);
+      params.push(obj);
+    }
+    // 如果没有获取到数量 默认为1
+    let quantity = Number($(".fx-quantity-input").val());
+    if (typeof quantity !== "number") {
+      quantity = 1;
+    }
+    params.forEach((item) => {
+      item.quantity = quantity;
+    });
+    // stockIsNull 为true说明 有stock 库存为0的 不能在售卖;
+    let stockIsNull =
+      params?.filter((item) => {
+        return item?.stock <= 0 || item?.quantity > item?.stock;
+      }).length > 0;
+    // 根据不同的变种id 展示不同的图片
+    params.forEach((itemobj, index) => {
+      $(".fx-leftImgSelf" + index).attr("src", itemobj?.imgLink);
+    });
+    // 判断渲染的加入购物车按钮
+    AddCartButtonStyle(stockIsNull, params);
+    console.log("购物车参数对象", params, stockIsNull);
+  }
+  // 找到变种id在数组的下标
+  function indexOf(arr, str) {
+    // 传进来的不是数组或者空数组 直接返回-1；
+    if (!Array.isArray(arr) || arr.length < 1) {
+      return -1;
+    }
+    for (let i = 0; i < arr.length; i++) {
+      let attrs_string = arr[i].attrs_string
+        .replace(/,/, "")
+        .split(" ")
+        .join("");
+      // console.log(attrs_string, "str", str, attrs_string === str);
+      if (attrs_string === str) return i;
+    }
+    return -1;
+  }
+  $(function () {
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        console.log(window.innerWidth);
+      }, 500)
+    );
+    mobileRender();
+  });
+</script>
