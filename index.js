@@ -5576,10 +5576,10 @@
 // 脚本开始
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top";
 const origin = window.location.origin || "https://powder70.hotishop.com";
-const shop = window.location.host || "'powder70.hotishop.com'";
+const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT = ".";
-let arr = [];
-let comboId = "";
+let arr = []; // combo详情数组
+let comboId = ""; // comboId
 let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连续频繁点击
 $(function () {
   console.log("js脚本执行了");
@@ -5621,7 +5621,6 @@ $(function () {
       let id = event.currentTarget.id;
       // console.log("获取点击的id", id);
       let value = event.target.innerHTML || "";
-      // console.log("e?.target?.innerHTML", value);
       $(`#${id}`).prev().html(value);
       $(`#${id}`).parent().attr("data-value", value);
       checkSell();
@@ -5634,7 +5633,6 @@ $(function () {
     return;
   }
 });
-
 // 购物车优惠卷逻辑判断 购物车是单独页面的情况
 function cartAndCouponJudge() {
   console.log("进入购物车是单独页面的情况");
@@ -5786,70 +5784,64 @@ function monitorCart() {
 // 获取数据以及插入html
 function getDataAndInsertHtml() {
   const shop = window.location.host || "'powder70.hotishop.com'";
-  let obj = {
-    shop,
-  };
   // 获取传过来的id
   let url = window.location.href;
   let pathName = window.location.pathname;
-  let params = { ...obj, url };
-  if (pathName !== "/cart") {
-    $.ajax({
-      accept: "application/json",
-      dataType: "json",
-      method: "get",
-      async: false, // 同步请求
-      url: `${API_ENDPOINT}/api/getGoodsDetails`,
-      data: params,
-      success: function (res) {
-        let doms = `<div class="fx-details-bigBox">`;
-        arr = res?.data?.data || [];
-        console.log("详情数据data", res);
-        comboId = res?.data?.comboInfo?.id;
-        // 判断不是combo 直接return
-        if (!res?.data?.is_combo) {
-          console.log("进入到不是combo逻辑，给加入购物车增加点击事件");
-          // 判断购物车方式 是不是弹出框或者抽屉的方式
-          if (document.querySelector(".inlineCart")) {
-            document
-              .querySelector(".product_single_add .product_single_add_button")
-              .addEventListener("click", () => {
-                carPopUptAndCouponJudge();
-                console.log("我点击了加入购物车按钮 购物车是弹出形式 ");
-              });
-          }
-          return;
+  let params = { shop, url };
+  $.ajax({
+    accept: "application/json",
+    dataType: "json",
+    method: "get",
+    async: false, // 同步请求
+    url: `${API_ENDPOINT}/api/getGoodsDetails`,
+    data: params,
+    success: function (res) {
+      let doms = `<div class="fx-details-bigBox">`;
+      arr = res.data.data || [];
+      console.log("详情数据data", res);
+      comboId = res.data.comboInfo.id;
+      // 判断不是combo 直接return
+      if (!res.data.is_combo) {
+        console.log("进入到不是combo逻辑，给加入购物车增加点击事件");
+        // 判断购物车方式 是不是弹出框或者抽屉的方式
+        if (document.querySelector(".inlineCart")) {
+          document
+            .querySelector(".product_single_add .product_single_add_button")
+            .addEventListener("click", () => {
+              carPopUptAndCouponJudge();
+              console.log("我点击了加入购物车按钮 购物车是弹出形式 ");
+            });
         }
-        if (Array.isArray(arr) && arr.length > 0) {
-          arr.forEach((item, index) => {
-            let img = item?.image
-              ? item?.image
-              : `${ASSET_ENDPOINT}/default.png`;
-            doms += `
+        return;
+      }
+      if (Array.isArray(arr) && arr.length > 0) {
+        arr.forEach((item, index) => {
+          let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
+          doms += `
               <div class="fx-detailsBox" data-index=${index}>
               <div class="fx-leftImg">
                   <img class="fx-leftImgSelf${index}" src="${img}" alt=""  data-index=${index}>
               </div>
               <div class="fx-rightBox">
                   <div class="fx-title">
-                      ${item?.title}
+                      ${item.title}
                   </div>
                   <div class="selectBoxs">
-                   ${item?.variant_attrs.reduce((prev, currents, indexs) => {
+                   ${item.variant_attrs.reduce((prev, currents, indexs) => {
                      return (
                        prev +
                        `<div class="selectBox${index} selectItemBox" data-value="${
-                         currents?.name
-                       }:${currents?.value[0]}">
+                         currents.name
+                       }:${currents.value[0]}">
                        <div class="fx-select" id="fx-select-${index}${indexs}"> 
-                       ${currents?.name}:${currents?.value[0]}
+                       ${currents.name}:${currents.value[0]}
                        </div>
                        <div class="fx-list" id=${index}${indexs}>
-                          ${currents?.value?.reduce((prev, current) => {
+                          ${currents.value.reduce((prev, current) => {
                             return (
                               prev +
                               `
-                            <div class="fx-listItem" key=${index}${indexs} >${currents?.name}:${current}</div>
+                            <div class="fx-listItem" key=${index}${indexs} >${currents.name}:${current}</div>
                             `
                             );
                           }, "")}
@@ -5862,58 +5854,15 @@ function getDataAndInsertHtml() {
               </div>
           </div>
               `;
-          });
-        }
-        doms + "</div>";
-        // 自定义数量按钮
-        let numberButtonDom = `
-        <div class="fx_product_qty_box">
-        <div class="fx_secondary_title">Quantity</div>
-        <div class="fx-quantity-box">
-            <button class="fx-quantity-button fx-jian-button">-</button>
-            <input class="fx-quantity-input"  value="1" type="text" min="1",max="100000">
-            <button class="fx-quantity-button fx-jia-button">+</button>
-        </div>
-    </div>
-        `;
-        // 渲染详情展示页面
-        $(".product_single_price").after(doms);
-        $(".fx-details-bigBox").after(numberButtonDom);
-        $(".product_single .input_attrs_box").remove();
-        checkSell();
-        // 减少按钮逻辑
-        $(".fx-jian-button").click(function () {
-          let value = 1;
-          let inputNumber = Number($(".fx-quantity-input").val());
-          value = inputNumber - 1;
-          if (value <= 0) {
-            value = 1;
-          }
-          $(".fx-quantity-input").val(value);
-          checkSell();
         });
-        // 增加按钮逻辑
-        $(".fx-jia-button").click(function () {
-          let value = 1;
-          let inputNumber = Number($(".fx-quantity-input").val());
-          value = inputNumber + 1;
-          $(".fx-quantity-input").val(value);
-          checkSell();
-        });
-        // input失焦事件逻辑
-        $(".fx-quantity-input").blur(function () {
-          // 输入框失去焦点
-          let inputNumber = Number($(".fx-quantity-input").val());
-          if (!/^[1-9]{1,5}$/.test(inputNumber)) {
-            $(".fx-quantity-input").val(1);
-          } else {
-            $(".fx-quantity-input").val(inputNumber);
-          }
-          checkSell();
-        });
-      },
-    });
-  }
+      }
+      doms + "</div>";
+      // 渲染详情展示页面
+      $(".product_single_price").after(doms);
+      $(".product_single .input_attrs_box").remove();
+      checkSell();
+    },
+  });
 }
 // 判断是否还能在售卖
 function checkSell() {
@@ -5929,10 +5878,10 @@ function checkSell() {
     str = str.split(" ").join("");
     let arrId = indexOf(arr[i].variants, str);
     // 得到商品id和变种id
-    let product_id = arr[i]?.ID;
-    let variant_id = arr[i]["variants"][arrId]?.ID;
-    let stock = arr[i]["variants"][arrId]?.stock || arr[i]?.stock;
-    let img = arr[i]["variants"][arrId]?.image;
+    let product_id = arr[i].ID;
+    let variant_id = arr[i]["variants"][arrId].ID;
+    let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
+    let img = arr[i]["variants"][arrId].image;
     let obj = { product_id, variant_id, stock, imgLink: img };
     if (!obj.variant_id) {
       delete obj.variant_id;
@@ -5940,21 +5889,17 @@ function checkSell() {
     params.push(obj);
   }
   // 如果没有获取到数量 默认为1
-  let quantity = Number($(".fx-quantity-input").val());
-  if (typeof quantity !== "number") {
-    quantity = 1;
-  }
   params.forEach((item) => {
-    item.quantity = quantity;
+    item.quantity = 1;
   });
   // stockIsNull 为true说明 有stock 库存为0的 不能在售卖;
   let stockIsNull =
-    params?.filter((item) => {
-      return item?.stock <= 0 || item?.quantity > item?.stock;
+    params.filter((item) => {
+      return item.stock <= 0 || item.quantity > item.stock;
     }).length > 0;
   // 根据不同的变种id 展示不同的图片
   params.forEach((itemobj, index) => {
-    $(".fx-leftImgSelf" + index).attr("src", itemobj?.imgLink);
+    $(".fx-leftImgSelf" + index).attr("src", itemobj.imgLink);
   });
   // 判断渲染的加入购物车按钮
   AddCartButtonStyle(stockIsNull, params);
@@ -5963,7 +5908,7 @@ function checkSell() {
 // 加入购物车按钮操作判断
 function AddCartButtonStyle(stockIsNull, params) {
   // 如果是详情页 移除原本的加入购物车按钮 新增一个新的添加购物车按钮
-  if ($(".fx-details-bigBox"?.length)) {
+  if ($(".fx-details-bigBox".length)) {
     let textValue = $(".product_single_add_button .secondary_title").html();
     console.log("textValue", textValue);
     let disAbleValue = "SOLD OUT";
@@ -5987,15 +5932,15 @@ function AddCartButtonStyle(stockIsNull, params) {
     </div>
     `;
     $(".product_single_add_button").remove();
-    if ($(".product_single_add_button_disabledsoldout")?.length) {
+    if ($(".product_single_add_button_disabledsoldout").length) {
       disAbleValue = textValue;
-      $(".fx_product_qty_box").append(disAbleButton);
+      $(".fx-details-bigBox").append(disAbleButton);
     } else {
       // stockIsNull 为false 说明有库存为空
       if (stockIsNull) {
-        $(".fx_product_qty_box").append(disAbleButton);
+        $(".fx-details-bigBox").append(disAbleButton);
       } else {
-        $(".fx_product_qty_box").append(addButton);
+        $(".fx-details-bigBox").append(addButton);
         // 重写点击逻辑
         $(".product_single_add_button").on("click", () => {
           buttonOnchilk(params);
@@ -6012,10 +5957,10 @@ function buttonOnchilk(params) {
   let quantity = Number($(".fx-quantity-input").val());
   params.forEach((item) => {
     item.quantity = quantity;
-    if (item?.stock) {
+    if (item.stock) {
       delete item.stock;
     }
-    if (item?.imgLink) {
+    if (item.imgLink) {
       delete item.imgLink;
     }
   });
