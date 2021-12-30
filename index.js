@@ -5786,83 +5786,127 @@ function getDataAndInsertHtml() {
   const shop = window.location.host || "'powder70.hotishop.com'";
   // 获取传过来的id
   let url = window.location.href;
-  let pathName = window.location.pathname;
-  let params = { shop, url };
-  $.ajax({
-    accept: "application/json",
-    dataType: "json",
-    method: "get",
-    async: false, // 同步请求
-    url: `${API_ENDPOINT}/api/getGoodsDetails`,
-    data: params,
-    success: function (res) {
-      let doms = `<div class="fx-details-bigBox">`;
-      arr = res.data.data || [];
-      console.log("详情数据data", res);
-      comboId = res.data.comboInfo.id;
-      // 判断不是combo 直接return
-      if (!res.data.is_combo) {
-        console.log("进入到不是combo逻辑，给加入购物车增加点击事件");
-        // 判断购物车方式 是不是弹出框或者抽屉的方式
-        if (document.querySelector(".inlineCart")) {
-          document
-            .querySelector(".product_single_add .product_single_add_button")
-            .addEventListener("click", () => {
-              carPopUptAndCouponJudge();
-              console.log("我点击了加入购物车按钮 购物车是弹出形式 ");
-            });
-        }
-        return;
+  fetch(`${API_ENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${url}`, {
+    method: "GET",
+  }).then((response) => response.json()).then((res) => {
+    // 返回数据处理 删除多余字段
+    arr = returnedDataProcessing(res.data.data)
+    console.log("详情数据data", arr);
+    comboId = res.data.comboInfo.id;
+    // 判断不是combo 直接return
+    if (!res.data.is_combo) {
+      console.log("进入到不是combo逻辑，给加入购物车增加点击事件");
+      // 判断购物车方式 是不是弹出框或者抽屉的方式
+      if (document.querySelector(".inlineCart")) {
+        document
+          .querySelector(".product_single_add .product_single_add_button")
+          .addEventListener("click", () => {
+            carPopUptAndCouponJudge();
+            console.log("我点击了加入购物车按钮 购物车是弹出形式 ");
+          });
       }
-      if (Array.isArray(arr) && arr.length > 0) {
-        arr.forEach((item, index) => {
-          let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
-          doms += `
-              <div class="fx-detailsBox" data-index=${index}>
-              <div class="fx-leftImg">
-                  <img class="fx-leftImgSelf${index}" src="${img}" alt=""  data-index=${index}>
+      return;
+    }
+    pcComboDetailsRender();
+    checkSell();
+  });
+}
+// 详情数据，返回数据处理
+function returnedDataProcessing(arrData){
+  let newArrData = [];
+  let obj = {};
+  arrData.forEach((item)=>{
+   obj.ID = item.ID;
+   obj.variant_attrs = item.variant_attrs;
+   obj.variants = item.variants;
+   obj.stock = item.stock;
+   obj.title = item.title;
+   obj.image = item.image;
+   newArrData.push(obj);
+  })
+  return newArrData;
+}
+// pc端渲染combo详情 
+function  pcComboDetailsRender(){
+  let doms = `<div class="fx-details-bigBox">`;
+  if (Array.isArray(arr) && arr.length > 0) {
+    arr.forEach((item, index) => {
+      let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
+      doms += `
+          <div class="fx-detailsBox" data-index=${index}>
+          <div class="fx-leftImg">
+              <img class="fx-leftImgSelf${index}" src="${img}" alt=""  data-index=${index}>
+          </div>
+          <div class="fx-rightBox">
+              <div class="fx-title">
+                  ${item.title}
               </div>
-              <div class="fx-rightBox">
-                  <div class="fx-title">
-                      ${item.title}
-                  </div>
-                  <div class="selectBoxs">
-                   ${item.variant_attrs.reduce((prev, currents, indexs) => {
-                     return (
-                       prev +
-                       `<div class="selectBox${index} selectItemBox" data-value="${
-                         currents.name
-                       }:${currents.value[0]}">
-                       <div class="fx-select" id="fx-select-${index}${indexs}"> 
-                       ${currents.name}:${currents.value[0]}
-                       </div>
-                       <div class="fx-list" id=${index}${indexs}>
-                          ${currents.value.reduce((prev, current) => {
-                            return (
-                              prev +
-                              `
-                            <div class="fx-listItem" key=${index}${indexs} >${currents.name}:${current}</div>
-                            `
-                            );
-                          }, "")}
-                        </div>
+              <div class="selectBoxs">
+               ${item.variant_attrs.reduce((prev, currents, indexs) => {
+                 return (
+                   prev +
+                   `<div class="selectBox${index} selectItemBox" data-value="${
+                     currents.name
+                   }:${currents.value[0]}">
+                   <div class="fx-select" id="fx-select-${index}${indexs}"> 
+                   ${currents.name}:${currents.value[0]}
+                   </div>
+                   <div class="fx-list" id=${index}${indexs}>
+                      ${currents.value.reduce((prev, current) => {
+                        return (
+                          prev +
+                          `
+                        <div class="fx-listItem" title=${currents.name}:${current} key=${index}${indexs} >${currents.name}:${current}</div>
+                        `
+                        );
+                      }, "")}
                     </div>
-                    `
-                     );
-                   }, "")}
-                  </div>
+                </div>
+                `
+                 );
+               }, "")}
               </div>
           </div>
-              `;
-        });
-      }
-      doms + "</div>";
-      // 渲染详情展示页面
-      $(".product_single_price").after(doms);
-      $(".product_single .input_attrs_box").remove();
-      checkSell();
-    },
-  });
+      </div>
+          `;
+    });
+  }
+  doms + "</div>";
+  // 渲染详情展示页面
+  $(".product_single_price").after(doms);
+  $(".product_single .input_attrs_box").remove();
+  // 自定义下拉框逻辑
+  custormSelect()
+}
+// 自定义下拉框逻辑
+function custormSelect(){
+      // 自定义下拉框逻辑
+      $(".fx-select").on("click", (event) => {
+        $(".fx-list").css({ visibility: "hidden" });
+        // 获取当前节点的id
+        let currentTargetId = event.target.id;
+        event.stopPropagation(); // 阻止事件冒泡
+        if ($(`#${currentTargetId}`).next().css("visibility") === "hidden") {
+          $(`#${currentTargetId}`).next().css({ visibility: "visible" });
+        } else {
+          $(`#${currentTargetId}`).next().css({ visibility: "hidden" });
+        }
+      });
+      // 监听dom逻辑
+      $(document).on("click", () => {
+        $(".fx-list").css({ visibility: "hidden" });
+      });
+      // 点击下拉列表的逻辑
+      $(".fx-list").on("click", (event) => {
+        // 获取当前点击的id
+        let id = event.currentTarget.id;
+        // console.log("获取点击的id", id);
+        let value = event.target.innerHTML || "";
+        $(`#${id}`).prev().html(value);
+        $(`#${id}`).parent().attr("data-value", value);
+        checkSell();
+      });
+      // 自定义下拉框逻辑 end
 }
 // 判断是否还能在售卖
 function checkSell() {
@@ -5877,6 +5921,7 @@ function checkSell() {
     // 去掉空格
     str = str.split(" ").join("");
     let arrId = indexOf(arr[i].variants, str);
+    console.log("arr和arrid",arr,arrId)
     // 得到商品id和变种id
     let product_id = arr[i].ID;
     let variant_id = arr[i]["variants"][arrId].ID;
@@ -5954,9 +5999,8 @@ function AddCartButtonStyle(stockIsNull, params) {
 // 自定义购物车按钮点击函数
 function buttonOnchilk(params) {
   // console.log("传给mshop购物车接口的参数", params);
-  let quantity = Number($(".fx-quantity-input").val());
   params.forEach((item) => {
-    item.quantity = quantity;
+    item.quantity = 1;
     if (item.stock) {
       delete item.stock;
     }
@@ -5972,11 +6016,14 @@ function buttonOnchilk(params) {
 }
 // 找到变种id在数组的下标
 function indexOf(arr, str) {
+  console.log("indexof里面传进来的arr和str",arr,str)
   // 传进来的不是数组或者空数组 直接返回-1；
   if (!Array.isArray(arr) || arr.length < 1) {
     return -1;
   }
+ 
   for (let i = 0; i < arr.length; i++) {
+    // console.log("arr[i].attrs_string",arr[i].attrs_string)
     let attrs_string = arr[i].attrs_string.replace(/,/, "").split(" ").join("");
     // console.log(attrs_string, "str", str, attrs_string === str);
     if (attrs_string === str) return i;

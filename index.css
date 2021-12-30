@@ -38,6 +38,8 @@
   box-shadow: 0px 2px 10px 4px rgba(12, 72, 128, 0.06);
   border-radius: 4px;
   z-index: 99;
+  max-height: 500px;
+  overflow-y: auto;
 }
 .fx-listItem:hover {
   background: #f5f5f5;
@@ -46,6 +48,9 @@
   height: 38px;
   line-height: 38px;
   padding-left: 12px;
+  overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap
 }
 .fx-show {
   visibility: visible;
