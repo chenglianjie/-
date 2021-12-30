@@ -5814,8 +5814,8 @@ function getDataAndInsertHtml() {
 // 详情数据，返回数据处理
 function returnedDataProcessing(arrData){
   let newArrData = [];
-  let obj = {};
   arrData.forEach((item)=>{
+  let obj = {};
    obj.ID = item.ID;
    obj.variant_attrs = item.variant_attrs;
    obj.variants = item.variants;
