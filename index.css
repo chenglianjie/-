@@ -41,6 +41,33 @@
   max-height: 500px;
   overflow-y: auto;
 }
+/* 遮罩 */
+/* 下拉框是移动端时 */
+@media screen and (max-width: 768px) {
+  .fx-list {
+    z-index: 1000;
+    width: 100%;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    height: 300px;
+    text-align: center;
+  }
+  .fx-listItem {
+    height: 40px !important;
+  }
+  .fx-mask {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    height: 100vh;
+    width: 100vw;
+    background-color: rgba(0, 0, 0, 0.7);
+    opacity: 0.5;
+  }
+}
 .fx-listItem:hover {
   background: #f5f5f5;
 }
@@ -48,9 +75,9 @@
   height: 38px;
   line-height: 38px;
   padding-left: 12px;
-  overflow:hidden;
-text-overflow:ellipsis;
-white-space:nowrap
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .fx-show {
   visibility: visible;
@@ -147,4 +174,35 @@ white-space:nowrap
   font-size: 16px;
   border-radius: 0;
   cursor: pointer;
+}
+
+/* 滚动条样式*/
+::-webkit-scrollbar-thumb:horizontal {
+  /*水平滚动条的样式*/
+  width: 3px;
+  background-color: #9f9f9f;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track-piece {
+  background-color: #fff; /*滚动条的背景颜色*/
+  border-radius: 0; /*滚动条的圆角宽度*/
+}
+::-webkit-scrollbar {
+  width: 10px; /*滚动条的宽度*/
+  height: 8px; /*滚动条的高度*/
+}
+::-webkit-scrollbar-thumb:vertical {
+  /*垂直滚动条的样式*/
+  height: 50px;
+  background-color: #9f9f9f;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  /*滚动条的hover样式*/
+  height: 50px;
+  background-color: #9f9f9f;
+  border-radius: 4px;
 }
