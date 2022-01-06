@@ -4501,7 +4501,8 @@
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top";
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
-const ASSET_ENDPOINT = ".";
+const ASSET_ENDPOINT =
+  "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
 let arr = []; // combo详情数组
 let comboId = ""; // comboId
 let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连续频繁点击
@@ -4523,33 +4524,6 @@ $(function () {
     appendCss();
     // 获取详情数据 并插入html
     getDataAndInsertHtml();
-    // 自定义下拉框逻辑
-    $(".fx-select").on("click", (event) => {
-      $(".fx-list").css({ visibility: "hidden" });
-      // 获取当前节点的id
-      let currentTargetId = event.target.id;
-      event.stopPropagation(); // 阻止事件冒泡
-      if ($(`#${currentTargetId}`).next().css("visibility") === "hidden") {
-        $(`#${currentTargetId}`).next().css({ visibility: "visible" });
-      } else {
-        $(`#${currentTargetId}`).next().css({ visibility: "hidden" });
-      }
-    });
-    // 监听dom逻辑
-    $(document).on("click", () => {
-      $(".fx-list").css({ visibility: "hidden" });
-    });
-    // 点击下拉列表的逻辑
-    $(".fx-list").on("click", (event) => {
-      // 获取当前点击的id
-      let id = event.currentTarget.id;
-      // console.log("获取点击的id", id);
-      let value = event.target.innerHTML || "";
-      $(`#${id}`).prev().html(value);
-      $(`#${id}`).parent().attr("data-value", value);
-      checkSell();
-    });
-    // 自定义下拉框逻辑 end
   }
   // 购物车是单独页面情况
   if (pathname.indexOf("cart") !== -1) {
@@ -4634,6 +4608,9 @@ function requestCartAndCheckedCoupon() {
       let product_id = Object.values(data.cart).map((item) => {
         return item.product_id;
       });
+      let goodsInfo = Object.values(data.cart).map((item) => {
+        return { id: item.product_id, num: item.quantity };
+      });
       // code 和code描述
       let codeDescript = "";
       let code = "";
@@ -4641,7 +4618,6 @@ function requestCartAndCheckedCoupon() {
         codeDescript = $("#discount_price .secondary_title").html();
         let index = codeDescript.indexOf("</span>");
         codeDescript = codeDescript.slice(index).replace("</span>", "").trim();
-        // codeDescript2 = $("#discount_price .secondary_title").text();
         console.log("code描述符", codeDescript, index);
       }
       let codeArr = data.coupons.filter((item) => {
@@ -4650,7 +4626,7 @@ function requestCartAndCheckedCoupon() {
       if (codeArr.length > 0) {
         code = codeArr[0].code;
       }
-      console.log("id和code", product_id, code);
+      console.log("code和goodsInfo和id", goodsInfo, code, product_id);
       // 如果没用发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
       if (!code) {
         // 执行老按钮逻辑
@@ -4663,7 +4639,7 @@ function requestCartAndCheckedCoupon() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code, shop, ids: product_id }),
+        body: JSON.stringify({ code, shop, goodsInfo, ids: product_id }),
       })
         .then((response) => response.json())
         .then((res) => {
@@ -4785,7 +4761,7 @@ function pcComboDetailsRender() {
                      currents.name
                    }:${currents.value[0]}">
                    <div class="fx-select" id="fx-select-${index}${indexs}"> 
-                   ${currents.name}:${currents.value[0]}
+                  ${currents.name}:${currents.value[0]}               
                    </div>
                    <div class="fx-list" id=${index}${indexs}>
                       ${currents.value.reduce((prev, current) => {
@@ -4818,6 +4794,7 @@ function pcComboDetailsRender() {
 function custormSelect() {
   // 自定义下拉框逻辑
   $(".fx-select").on("click", (event) => {
+    $("body").append(`<div class="fx-mask">mask</div>`);
     $(".fx-list").css({ visibility: "hidden" });
     // 获取当前节点的id
     let currentTargetId = event.target.id;
@@ -4831,9 +4808,11 @@ function custormSelect() {
   // 监听dom逻辑
   $(document).on("click", () => {
     $(".fx-list").css({ visibility: "hidden" });
+    $(".fx-mask").remove();
   });
   // 点击下拉列表的逻辑
   $(".fx-list").on("click", (event) => {
+    $(".fx-mask").remove();
     // 获取当前点击的id
     let id = event.currentTarget.id;
     // console.log("获取点击的id", id);
@@ -4855,15 +4834,22 @@ function checkSell() {
       str += val;
     });
     // 去掉空格
-    str = str.split(" ").join("");
+    str = str.replace('"', "").split(" ").join("");
     let arrId = indexOf(arr[i].variants, str);
+    let obj = {};
     console.log("arr和arrid", arr, arrId);
+    if (arrId === -1) {
+      obj = { product_id: arr[i].ID, stock: arr[i].stock };
+      params.push(obj);
+      continue;
+    }
     // 得到商品id和变种id
     let product_id = arr[i].ID;
     let variant_id = arr[i]["variants"][arrId].ID;
     let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
-    let img = arr[i]["variants"][arrId].image;
-    let obj = { product_id, variant_id, stock, imgLink: img };
+    let img =
+      arr[i]["variants"][arrId].image || `${ASSET_ENDPOINT}/default.png`;
+    obj = { product_id, variant_id, stock, imgLink: img };
     if (!obj.variant_id) {
       delete obj.variant_id;
     }
@@ -4959,10 +4945,12 @@ function indexOf(arr, str) {
   }
 
   for (let i = 0; i < arr.length; i++) {
-    // console.log("arr[i].attrs_string",arr[i].attrs_string)
-    let attrs_string = arr[i].attrs_string.replace(/,/, "").split(" ").join("");
-    // console.log(attrs_string, "str", str, attrs_string === str);
-    if (attrs_string === str) return i;
+    let attrs_string;
+    attrs_string = arr[i].attrs_string.replace("/", "");
+    let attrs_string2 = attrs_string.replace('"', "");
+    attrs_string2 = attrs_string2.replace(/,/, "").split(" ").join("");
+    // console.log("对比attrs_string",attrs_string2, "str", str, attrs_string2 === str);
+    if (attrs_string2 === str) return i;
   }
   return -1;
 }
@@ -4981,19 +4969,6 @@ function jumpTocart(params) {
     let createCouponObj = { id: comboId, cartInfo, shop };
     // 创建优惠卷
     const createCouponPromise = new Promise((resolve, reject) => {
-      // $.ajax({
-      //   accept: "application/json",
-      //   dataType: "json",
-      //   method: "post",
-      //   url: `${API_ENDPOINT}/api/createCoupon`,
-      //   data: createCouponObj,
-      //   success: function (res) {
-      //     resolve(res);
-      //   },
-      //   error: function (error) {
-      //     reject(error);
-      //   },
-      // });
       fetch(`${API_ENDPOINT}/api/createCoupon`, {
         method: "POST",
         headers: {
@@ -5026,25 +5001,11 @@ function jumpTocart(params) {
         .catch((error) => {
           reject(error);
         });
-      // $.ajax({
-      //   accept: "application/json",
-      //   dataType: "json",
-      //   method: "post",
-      //   url: `${origin}/api/store/batchCart`,
-      //   data: params,
-      //   success: function (res) {
-      //     canClickAddButton = true;
-      //     resolve(res);
-      //   },
-      //   error: function (error) {
-      //     reject(error);
-      //   },
-      // });
     });
     // 前两个接口执行结果
     Promise.all([addToCartpromise, createCouponPromise])
       .then((result) => {
-        console.log("promise all 执行结果", result);
+        console.log("2个promise all 执行结果", result);
         if (Array.isArray(result) && result.length === 2) {
           let hash = result[0].hash;
           let code = result[1].data.code;
@@ -5069,14 +5030,11 @@ function jumpTocart(params) {
                 let url = origin + "/cart";
                 window.location.href = url;
               });
-          } else {
-            let url = origin + "/cart";
-            window.location.href = url;
           }
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error("加入购物车报错信息", error);
       });
   }
 }
@@ -5086,8 +5044,8 @@ function appendCss() {
   let link1 = document.createElement("link");
   link1.setAttribute("rel", "stylesheet");
   link1.setAttribute("type", "text/css");
-  // link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
-  link1.setAttribute("href", "https://test.com/index.css");
+  link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
+  // link1.setAttribute("href", "https://test.com/index.css");
   let head = document.getElementsByTagName("head")[0];
   head.appendChild(link1);
   // 插入css 结束
