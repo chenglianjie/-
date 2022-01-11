@@ -4731,12 +4731,64 @@ function returnedDataProcessing(arrData) {
   newArrData.forEach((item, index) => {
     item.variants.forEach((item2, index2) => {
       let obj = {};
-      const { ID, attrs_string, image, attrs, stock } = item2;
-      obj = { ID, attrs_string, image, attrs, stock };
+      const { ID, attrs_string, image, attrs, stock, sale_price } = item2;
+      obj = { ID, attrs_string, image, attrs, stock, sale_price };
       newArrData2[index].variants[index2] = obj;
     });
   });
-  return newArrData2;
+  // 排序 价格降序
+  const handle = (property) => {
+    return function (a, b) {
+      const val1 = a[property];
+      const val2 = b[property];
+      return val1 - val2;
+    };
+  };
+  let newArrData3 = JSON.parse(JSON.stringify(newArrData2));
+  newArrData2.forEach((item3, index3) => {
+    if (item3.variant_attrs.length > 0) {
+      let arrtsArr = item3.variant_attrs.map((items) => {
+        return items.value;
+      });
+      let arrtsArr2 = [];
+      console.log("arrtsArr", arrtsArr);
+      for (let i = 0; i < arrtsArr.length; i++) {
+        arrtsArr2 = [...arrtsArr[i], ...arrtsArr2];
+      }
+      newArrData3[index3].arrtsArr = arrtsArr2;
+    }
+    if (item3.variants.length > 0) {
+      item3.variants.sort(handle("sale_price"));
+      item3.variants.forEach((item4, index4) => {
+        let filterArr = [];
+        filterArr = item4.attrs.map((item5) => {
+          return item5.value;
+        });
+        item4.filterArr = filterArr;
+      });
+      newArrData3[index3].variants = item3.variants;
+    }
+  });
+  let findArr = [];
+  newArrData3.forEach((item5, index5) => {
+    if (item5.variants.length > 0) {
+      findArr = item5.variants.find((item6, index6) => {
+        return item6.filterArr.every((val) => item5.arrtsArr.includes(val));
+      });
+      console.log("寻找最低价格的对象", findArr);
+      if (findArr.length) {
+        let obj = {};
+        findArr.attrs.forEach((item8) => {
+          obj[item8.name] = item8.value;
+        });
+        item5.variant_attrs.forEach((item7) => {
+          item7.value.unshift(obj[item7.name]);
+          item7.value = [...new Set(item7.value)];
+        });
+      }
+    }
+  });
+  return newArrData3;
 }
 // pc端渲染combo详情
 function pcComboDetailsRender() {
@@ -4835,11 +4887,19 @@ function checkSell() {
     });
     // 去掉空格
     str = str.replace('"', "").split(" ").join("");
-    let arrId = indexOf(arr[i].variants, str);
     let obj = {};
-    console.log("arr和arrid", arr, arrId);
-    if (arrId === -1) {
+    // 如果没有属性
+    if (arr[i].variants.length === 0) {
       obj = { product_id: arr[i].ID, stock: arr[i].stock };
+      params.push(obj);
+      continue;
+    }
+    let arrId = indexOf(arr[i].variants, str);
+
+    console.log("arr和arrid", arr, arrId);
+    // 属性如果没有找到
+    if (arrId === -1) {
+      obj = { product_id: arr[i].ID, stock: 0 };
       params.push(obj);
       continue;
     }
