@@ -175,6 +175,97 @@
   border-radius: 0;
   cursor: pointer;
 }
+/* 横向样式 只在pc端生效 */
+@media screen and (min-width: 769px) {
+  .fx-details-bigBox {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  /* 每一项 */
+  .fx-detailsBox-transverse {
+    width: 136px;
+    margin-right: 46px;
+    display: block;
+  }
+  .fx-title,
+  .fx-rightBox {
+    width: 136px;
+  }
+  .fx-rightBox {
+    width: 136px;
+    min-width: 136px;
+  }
+  .fx-rightBox {
+    height: auto;
+  }
+  .fx-leftImg,
+  .fx-title,
+  .selectItemBox {
+    margin-bottom: 16px;
+  }
+}
+/* pc端平铺方式样式 */
+/* 整个包裹容器 */
+.fx-tile-box {
+  border: 1px solid red;
+}
+/* 每一项商品包裹容器 */
+.fx-tile-everyItem {
+  display: flex;
+  margin-bottom: 20px;
+}
+/* 左边图片样式 */
+.fx-tile-everyItem-leftImg {
+  width: 100px;
+  height: 100px;
+  /* border: 1px solid yellow; */
+  margin-right: 16px;
+}
+.fx-tile-leftImgSelf {
+  width: 100%;
+  height: 100%;
+}
+/* 右边盒子样式 */
+.fx-tile-rightBox {
+  /* border: 1px solid yellow; */
+  width: calc(100% - 100px);
+}
+/* 商品标题 */
+.fx-tile-goods-title {
+  color: #1e0909;
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* color size 子项box */
+.fx-tile-propertyBox {
+  display: flex;
+  flex-wrap: wrap;
+}
+/* 每一个子项 */
+.fx-tile-propertyBox-item {
+  padding: 4px 18px;
+  /* max-width: 80px; */
+  display: inline-block;
+  border: 1px solid #d2d2d2;
+  color: #222323;
+  cursor: pointer;
+  padding: 4px 12px;
+  margin: 3px 10px 7px 0px;
+  background-color: #fff;
+  height: 32px;
+  line-height: 22px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 选中的子项 */
+.fx-tile-propertyBox-item-checked {
+  color: white;
+  background-color: #7237e8;
+}
+/* pc端平铺方式样式   end*/
 
 /* 滚动条样式*/
 ::-webkit-scrollbar-thumb:horizontal {
