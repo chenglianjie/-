@@ -4512,16 +4512,22 @@ let hideGoods = false; // 隐藏combo里面的商品详情展示
 $(function () {
   console.log("js脚本执行了");
   let { pathname = "" } = window.location;
-  console.log(`document.querySelector(".inlineCart")`,document.querySelector(".inlineCart"))
+  console.log(
+    `document.querySelector(".inlineCart")`,
+    document.querySelector(".inlineCart")
+  );
   // 点击购物车图标按钮时
-  $(".icon-gouwuche").on("click",()=>{
-    console.log("我点击了购物车按钮")
-    console.log(`点击了购物车按钮过后 inlineCart`,document.querySelector(".inlineCart"))
+  $(".icon-gouwuche").on("click", () => {
+    console.log("我点击了购物车按钮");
+    console.log(
+      `点击了购物车按钮过后 inlineCart`,
+      document.querySelector(".inlineCart")
+    );
     // &&pathname.indexOf("cart") === -1
-    if(document.querySelector(".inlineCart")){
+    if (document.querySelector(".inlineCart")) {
       getCartStyleConfig("popUpCart");
     }
-  })
+  });
   // 购物车是弹窗和侧边弹出的情况
   if (document.querySelector(".inlineCart")) {
     console.log("进入了购物车是弹窗和侧边弹出的情况");
@@ -4631,7 +4637,10 @@ function carPopUptAndCouponJudge() {
   }
   // 新的按钮
   let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
-  console.log(`!document.querySelector(".fx-checkout")`,!document.querySelector(".fx-checkout"))
+  console.log(
+    `!document.querySelector(".fx-checkout")`,
+    !document.querySelector(".fx-checkout")
+  );
   if (!document.querySelector(".fx-checkout-inlineCart")) {
     // 插入新的按钮
     $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
