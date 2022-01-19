@@ -4702,8 +4702,8 @@ function requestCartAndCheckedCoupon() {
       // if (codeArr.length > 0) {
       //   code = codeArr[0].code;
       // }
-      let code = data.cart.coupons["cart discount"]
-        ? data.cart.coupons["cart discount"].code
+      let code = data.coupons["cart discount"]
+        ? data.coupons["cart discount"].code
         : "";
       console.log("code和goodsInfo和id", goodsInfo, code, product_id);
       // 如果没用发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
@@ -5205,8 +5205,8 @@ function jumpTocart(params) {
             }
           }
           // 移除loading状态
-          // $(".fx-add-button").removeClass("fx-add-button-loading");
-          // $(".fx-add-button").addClass("transition-main");
+          $(".fx-add-button").removeClass("fx-add-button-loading");
+          $(".fx-add-button").addClass("transition-main");
           // 使用优惠卷
           function useCoupon() {
             // 调用使用优惠卷接口
