@@ -4674,7 +4674,7 @@ function requestCartAndCheckedCoupon() {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log("获取购物车详情", data);
+      console.log("购物车页面获取购物车详情", data);
       let hash = data.hash;
       if (Array.isArray(data.cart) && data.cart.length === 0) {
         // 购物车为空 直接执行老按钮逻辑
@@ -4688,23 +4688,27 @@ function requestCartAndCheckedCoupon() {
         return { id: item.product_id, num: item.quantity };
       });
       // code 和code描述
-      let codeDescript = "";
-      let code = "";
-      if (document.querySelector("#discount_price")) {
-        codeDescript = $("#discount_price .secondary_title").html();
-        let index = codeDescript.indexOf("</span>");
-        codeDescript = codeDescript.slice(index).replace("</span>", "").trim();
-        console.log("code描述符", codeDescript, index);
-      }
-      let codeArr = data.coupons.filter((item) => {
-        return item.description === codeDescript;
-      });
-      if (codeArr.length > 0) {
-        code = codeArr[0].code;
-      }
+      // let codeDescript = "";
+      // let code = "";
+      // if (document.querySelector("#discount_price")) {
+      //   codeDescript = $("#discount_price .secondary_title").html();
+      //   let index = codeDescript.indexOf("</span>");
+      //   codeDescript = codeDescript.slice(index).replace("</span>", "").trim();
+      //   console.log("code描述符", codeDescript, index);
+      // }
+      // let codeArr = data.coupons.filter((item) => {
+      //   return item.description === codeDescript;
+      // });
+      // if (codeArr.length > 0) {
+      //   code = codeArr[0].code;
+      // }
+      let code = data.cart.coupons["cart discount"]
+        ? data.cart.coupons["cart discount"].code
+        : "";
       console.log("code和goodsInfo和id", goodsInfo, code, product_id);
       // 如果没用发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
       if (!code) {
+        console.warn("没有找到code 直接执行checkout老逻辑");
         // 执行老按钮逻辑
         document.querySelector(".fx-checkout-old").click();
         return;
@@ -5100,6 +5104,9 @@ function buttonOnchilk(params) {
 // 添加到购物车
 function jumpTocart(params) {
   if (canClickAddButton) {
+    // 添加loading状态
+    $(".fx-add-button").removeClass("transition-main");
+    $(".fx-add-button").addClass("fx-add-button-loading");
     canClickAddButton = false;
     let origin = window.location.origin || "https://powder70.hotishop.com";
     console.log("购物车参数", params, comboId);
@@ -5110,7 +5117,7 @@ function jumpTocart(params) {
     const shop = window.location.host || "'powder70.hotishop.com'";
     // 创建优惠卷参数
     let createCouponObj = { id: comboId, cartInfo, shop };
-    // 创建优惠卷
+    // 创建优惠卷promise
     const createCouponPromise = new Promise((resolve, reject) => {
       fetch(`${API_ENDPOINT}/api/createCoupon`, {
         method: "POST",
@@ -5145,15 +5152,63 @@ function jumpTocart(params) {
           reject(error);
         });
     });
-    // 前两个接口执行结果
-    Promise.all([addToCartpromise, createCouponPromise])
+    // 请求购物车详情接口 promise
+    const getAddToCartDetailsPromise = new Promise((resolve, reject) => {
+      // ajax改造
+      fetch(`${origin}/api/store/cart`, {
+        method: "GET", // or 'PUT'
+      })
+        .then((response) => response.json())
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+    // 前三个接口执行结果
+    Promise.all([
+      addToCartpromise,
+      createCouponPromise,
+      getAddToCartDetailsPromise,
+    ])
       .then((result) => {
-        console.log("2个promise all 执行结果", result);
-        if (Array.isArray(result) && result.length === 2) {
-          let hash = result[0].hash;
-          let code = result[1].data.code;
-          console.log("hash和code", hash, code);
-          if (hash && code) {
+        console.log("3个promise all 执行结果", result);
+        if (Array.isArray(result) && result.length === 3) {
+          let hash = result[0].hash; // 购物车hash
+          let code = result[1].data.code; // 创建优惠卷的code码
+          let deleteCode = result[2].coupons["cart discount"]
+            ? result[2].coupons["cart discount"].code
+            : ""; // 删除优惠卷的code码
+          console.log("hash和code和deleteCode", hash, code, deleteCode);
+          // 删除优惠卷
+          if (deleteCode) {
+            // 调用删除优惠卷接口
+            fetch(
+              `${origin}/api/store/cart/coupons/?cart_hash=${hash}&code=${deleteCode}`,
+              {
+                method: "DELETE", // or 'PUT'
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ code }),
+              }
+            )
+              .then((response) => response.json())
+              .then((data) => {
+                console.log("删除优惠卷", data);
+                useCoupon();
+              });
+          } else {
+            if (hash && code) {
+              useCoupon();
+            }
+          }
+          // 移除loading状态
+          // $(".fx-add-button").removeClass("fx-add-button-loading");
+          // $(".fx-add-button").addClass("transition-main");
+          // 使用优惠卷
+          function useCoupon() {
             // 调用使用优惠卷接口
             fetch(`${origin}/api/store/cart/coupons?cart_hash=${hash}`, {
               method: "POST", // or 'PUT'

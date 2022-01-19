@@ -160,7 +160,8 @@
   margin-top: 20px;
 }
 
-.fx-checkout,.fx-checkout-inlineCart {
+.fx-checkout,
+.fx-checkout-inlineCart {
   width: 100%;
   display: inline-block;
   padding: 14px 20px;
@@ -296,4 +297,35 @@
   height: 50px;
   background-color: #9f9f9f;
   border-radius: 4px;
+}
+
+/* 加入购物车按钮loading样式 */
+.fx-add-button-loading {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #bfbfbf;
+}
+.fx-add-button-loading:before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  /* color: #0084ff; */
+  /* border: 1px solid #0084ff; */
+  /* border-radius: 50%; */
+  /* vertical-align: -10%; */
+  /* clip-path: polygon(0% 0%, 100% 0%, 100% 30%, 0% 30%); */
+  animation: rotate 1s linear infinite;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAD3SURBVHgBrVWBDYIwELyygN1ANtBRGAEnkRXcwA10A+IE6AS4AThB/YdrJIqCpZdcn1B6+W/+D4MZcM5ZCcrWGNNiKUSwci/ocy5MEQo5nAkL4UlYU1hjjhhghl54jxjQkgeiGWKAog1pEQMsX1EgFphhiVgQsSOztIkubIclF3tnXCXoJ0DFtogAFfSjtEY4NoyPbtUL1YtFINiPFZih4iK0IaPEM6nwMHxpBw2a/iHmp6X+OEcDcKObv8Xc18roKJNOwuloxibEjH0sQR0kRd9fV+GN29oJ2mKd2Qp3YrhnzCwnfzNWj5KVjJqBmSHu7V8x+Qt4AmnzKn2TabsxAAAAAElFTkSuQmCC");
+  background-repeat: no-repeat;
+}
+@keyframes rotate {
+  from {
+    transform: rotatez(0deg);
+  }
+
+  to {
+    transform: rotatez(360deg);
+  }
 }
