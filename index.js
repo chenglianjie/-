@@ -5991,12 +5991,12 @@ function pcComboDetailsRender() {
     arr.forEach((item, index) => {
       let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
       doms += `
-          <div class="fx-detailsBox" data-index=${index}>
+          <div class="fx-detailsBox" data-index="${index}">
           <div class="fx-leftImg">
               <img class="fx-leftImgSelf${index}" src="${img}" alt="" >
           </div>
           <div class="fx-rightBox">
-              <div class="fx-title">
+              <div class="fx-title" title="${item.title}">
                   ${item.title}
               </div>
               <div class="selectBoxs">
@@ -6009,12 +6009,12 @@ function pcComboDetailsRender() {
                    <div class="fx-select" id="fx-select-${index}${indexs}"> 
                   ${currents.name}:${currents.value[0]}               
                    </div>
-                   <div class="fx-list" id=${index}${indexs}>
+                   <div class="fx-list" id="${index}${indexs}">
                       ${currents.value.reduce((prev, current) => {
                         return (
                           prev +
                           `
-                        <div class="fx-listItem" title=${currents.name}:${current} key=${index}${indexs} >${currents.name}:${current}</div>
+                        <div class="fx-listItem" title="${currents.name}:${current}" key="${index}${indexs}">${currents.name}:${current}</div>
                         `
                         );
                       }, "")}
@@ -6063,12 +6063,12 @@ function tileRender() {
       let img = item?.image ? item?.image : `${ASSET_ENDPOINT}/default.png`;
       if (item.attrs_string.length > 0) {
         doms += `
-                <div class="fx-tile-everyItem" data-index=${index}>
+                <div class="fx-tile-everyItem" data-index="${index}">
                   <div class="fx-tile-everyItem-leftImg">
                       <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
                   </div>
                   <div class="fx-tile-rightBox">
-                    <div class="fx-tile-goods-title">
+                    <div class="fx-tile-goods-title" title="${item?.title}">
                         ${item?.title}
                     </div>
                     <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${
@@ -6078,7 +6078,7 @@ function tileRender() {
                         return (
                           prev +
                           `
-                            <div class="fx-tile-propertyBox-item" id=${index}${indexs} data-value="${currents}" title=${currents} data-keys=${index} key=${indexs}>${currents}</div>
+                            <div class="fx-tile-propertyBox-item" id="${index}${indexs}" data-value="${currents}" title="${currents}" data-keys="${index}" key="${indexs}">${currents}</div>
                             `
                         );
                       }, "")}
@@ -6088,7 +6088,7 @@ function tileRender() {
                 `;
       } else {
         doms += `
-                <div class="fx-tile-everyItem" data-index=${index}>
+                <div class="fx-tile-everyItem" data-index="${index}">
                   <div class="fx-tile-everyItem-leftImg">
                       <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
                   </div>
@@ -6147,6 +6147,21 @@ function custormSelect() {
     $(".fx-list").css({ visibility: "hidden" });
     // 获取当前节点的id
     let currentTargetId = event.target.id;
+    let value = $(`#${currentTargetId}`).html().trim();
+    $(".fx-listItem").removeClass("fx-listItem-checked");
+    $(".fx-listItem").each(function () {
+      console.log(
+        "对比title",
+        $(this).attr("title"),
+        value,
+        $(this).attr("title") == value
+      );
+      if ($(this).attr("title") == value) {
+        //指定title的值
+        $(this).addClass("fx-listItem-checked");
+      }
+    });
+    console.warn("当前选中的内容", value);
     event.stopPropagation(); // 阻止事件冒泡
     if ($(`#${currentTargetId}`).next().css("visibility") === "hidden") {
       $(`#${currentTargetId}`).next().css({ visibility: "visible" });
@@ -6274,13 +6289,12 @@ function jumpTocart(params) {
           if (deleteCode) {
             // 调用删除优惠卷接口
             fetch(
-              `${origin}/api/store/cart/coupons/?cart_hash=${hash}&code=${deleteCode}`,
+              `${origin}/api/store/cart/coupons/${deleteCode}?cart_hash=${hash}`,
               {
                 method: "DELETE", // or 'PUT'
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ code }),
               }
             )
               .then((response) => response.json())
@@ -6294,8 +6308,8 @@ function jumpTocart(params) {
             }
           }
           // 移除loading状态
-          $(".fx-add-button").removeClass("fx-add-button-loading");
-          $(".fx-add-button").addClass("transition-main");
+          // $(".fx-add-button").removeClass("fx-add-button-loading");
+          // $(".fx-add-button").addClass("transition-main");
           // 使用优惠卷
           function useCoupon() {
             // 调用使用优惠卷接口
@@ -6341,7 +6355,7 @@ function selectPropertyCombination() {
             <img class="fx-leftImgSelf${index}" src="${img}" alt="" data-index=${index}>
           </div>
           <div class="fx-rightBox">
-            <div class="fx-title">
+            <div class="fx-title" title=${item.title}>
                 ${item.title}
             </div>
             <div class="selectBoxs">
@@ -6356,7 +6370,7 @@ function selectPropertyCombination() {
                  return (
                    prev +
                    `
-                     <div class="fx-listItem" title=${currents} key=${index}${indexs} >${currents}</div>
+                     <div class="fx-listItem" title="${currents}" key=${index}${indexs} >${currents}</div>
                      `
                  );
                }, "")}
@@ -6373,7 +6387,7 @@ function selectPropertyCombination() {
                 <img class="fx-leftImgSelf${index}" src="${img}" alt=""  data-index=${index}>
               </div>
               <div class="fx-rightBox">
-                <div class="fx-title">
+                <div class="fx-title" title=${item.title}>
                     ${item.title}
                 </div>
                 <div class="selectBoxs">

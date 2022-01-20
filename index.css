@@ -6,7 +6,6 @@
 }
 .fx-select {
   position: relative;
-  /* width: 136px; */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -21,7 +20,6 @@
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAECAYAAACzzX7wAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAABASURBVHgBbY3BDQAgCAM1jsIihrCXuBhxElZBePgQ7a+9pq1ExGY2ykeez6aqCwCq+56hiHALk0sHPpNxh4gX2Bb0H1ibWAgRAAAAAElFTkSuQmCC");
   background-repeat: no-repeat;
   background-position: top 16px right 16px;
-  /* back */
 }
 .fx-selectimg {
   position: absolute;
@@ -31,7 +29,6 @@
 .fx-list {
   visibility: hidden;
   cursor: pointer;
-  width: 136px;
   margin-top: 8px;
   position: absolute;
   background: #ffffff;
@@ -182,6 +179,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.fx-listItem-checked {
+  background: #f5f5f5;
+}
 .fx-show {
   visibility: visible;
 }
@@ -266,9 +266,6 @@
 /* 横向样式 只在pc端生效 */
 @media screen and (min-width: 769px) {
   /* ------------------纵向下拉方式 css -------------------------------- */
-  .fx-details-bigBox {
-    overflow: hidden;
-  }
   .fx-leftImg {
     width: 180px;
   }
@@ -286,10 +283,6 @@
     padding-bottom: 10px;
     width: calc(100% - 180px);
     min-width: 282px;
-    /* height: 100%; */
-    /* display: flex; */
-    /* flex-direction: column; */
-    /* justify-content: space-between; */
     background: #f9f9f9;
   }
   .fx-title {
@@ -297,6 +290,7 @@
   }
   .selectItemBox {
     width: 100%;
+    position: relative;
   }
   .fx-select,
   .fx-list {
@@ -310,14 +304,12 @@
   .fx-details-bigBox-transverse {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
   }
   /* 每一项大盒子 */
   .fx-detailsBox-transverse {
     padding: 16px;
     padding-top: 0px;
     width: 212px;
-    /* height: 300px; */
     margin-right: 20px;
     background: #f9f9f9;
     display: block;
@@ -326,14 +318,12 @@
   .fx-leftImg-transverse {
     width: 180px;
     height: auto;
-    margin-bottom: 16px;
   }
   /* 标题 */
   .fx-title-transverse {
-    /* border: 1px solid red; */
     line-height: 20px;
     width: 180px;
-    height: 36px;
+    max-height: 36px;
     font-size: 14px;
     color: #333333;
     overflow: hidden;
@@ -343,7 +333,8 @@
     -webkit-box-orient: vertical;
   }
   .fx-rightBox-transverse {
-    width: 212px;
+    padding: 0;
+    width: 180px;
     min-width: 136px;
     height: auto;
   }
@@ -354,6 +345,8 @@
   .fx-select-transverse {
     width: 180px;
     background-color: #fff;
+    margin: 0px;
+    margin-top: 16px;
   }
   .fx-list-transverse {
     width: 180px;
