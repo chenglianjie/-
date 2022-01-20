@@ -6300,10 +6300,14 @@ function jumpTocart(params) {
               .then((response) => response.json())
               .then((data) => {
                 console.log("删除优惠卷", data);
-                useCoupon();
+                if (hash && code) {
+                  // 使用优惠卷
+                  useCoupon();
+                }
               });
           } else {
             if (hash && code) {
+              // 使用优惠卷
               useCoupon();
             }
           }
