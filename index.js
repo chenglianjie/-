@@ -5904,7 +5904,7 @@ function getDataAndInsertHtml() {
       arr = returnedDataProcessing(res.data.data);
       console.error("combo详情数据（处理过后）", arr);
       comboId = res.data.comboInfo.id;
-      console.error("hideGoods",hideGoods)
+      console.error("hideGoods", hideGoods);
       condition_num = res.data.comboInfo.condition_num; // 最低件数
       // 如果不是combo组合商品 直接return
       if (!res.data.is_combo) {
@@ -6194,7 +6194,7 @@ function custormSelect() {
 function buttonOnchilk(params) {
   // console.log("传给mshop购物车接口的参数", params);
   params.forEach((item) => {
-    item.quantity = condition_num;  // 数量至少为最低的件数
+    item.quantity = condition_num; // 数量至少为最低的件数
     if (item.stock) {
       delete item.stock;
     }
@@ -6281,14 +6281,14 @@ function jumpTocart(params) {
     ])
       .then((result) => {
         console.log("3个promise all 执行结果", result);
-        if( result[0].code ===-1){
-          let errorMsg =result[0].message 
-          let message = `<div class="fx-error-message"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`
-          $("body").append(message)
-          setTimeout(()=>{
+        if (result[0].code === -1) {
+          let errorMsg = result[0].message;
+          let message = `<div class="fx-error-message"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
+          $("body").append(message);
+          setTimeout(() => {
             $(".fx-error-message").remove();
-          },3000)
-         return; 
+          }, 3000);
+          return;
         }
         if (Array.isArray(result) && result.length === 3) {
           let hash = result[0].hash; // 购物车hash
@@ -6675,35 +6675,38 @@ function returnedDataProcessing(arrData) {
     }
   });
   // 如果商品隐藏，最低价格sold out 筛选有库存的商品价格最低的在最前面
-  let newArrData4  = JSON.parse(JSON.stringify(newArrData3));
-  console.error("数据处理之前",newArrData3,hideGoods)
-  if(hideGoods){
+  let newArrData4 = JSON.parse(JSON.stringify(newArrData3));
+  console.error("数据处理之前", newArrData3, hideGoods);
+  if (hideGoods) {
     newArrData3.forEach((item9, index9) => {
-      console.warn("item9",item9);
-      if(item9.variants.length>0){
-        console.warn("item9.variants",item9.variants);
-        item9.variants.map((item10,index10)=>{
-          if(!item10.stock || item10.stock < 1 ){
-            console.warn("进来了",item10,index10)
+      console.warn("item9", item9);
+      if (item9.variants.length > 0) {
+        console.warn("item9.variants", item9.variants);
+        item9.variants.map((item10, index10) => {
+          if (!item10.stock || item10.stock < 1) {
+            console.warn("进来了", item10, index10);
             newArrData4[index9].variants.push(item9.variants[index10]);
-            newArrData4[index9].variants.splice(index9,1);
+            newArrData4[index9].variants.splice(index9, 1);
           }
-        })
+        });
       }
-    })     
+    });
   }
-  console.error("数据处理之后",newArrData4)
+  console.error("数据处理之后", newArrData4);
   return newArrData4;
 }
 // 判断商品详情是否隐藏
 function judgeGoodsIsHidden() {
-  console.error("进来隐藏了",hideGoods);
+  console.error("进来隐藏了", hideGoods);
   if (hideGoods) {
     $(".fx-detailsBox").css({ visibility: "hidden", position: "absolute" });
     $(".fx-details-bigBox").css({ visibility: "hidden", position: "absolute" });
   } else {
     $(".fx-detailsBox").css({ visibility: "visible", position: "relative" });
-    $(".fx-details-bigBox").css({ visibility: "visible", position: "relative" });
+    $(".fx-details-bigBox").css({
+      visibility: "visible",
+      position: "relative",
+    });
   }
 }
 // 详情页的插入自己写的css(纯原生js)
