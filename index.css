@@ -470,3 +470,31 @@
     transform: rotatez(360deg);
   }
 }
+/* 错误提示样式 */
+.fx-error-message{
+  width: 400px;
+  height: 48px;
+  padding: 0 40px;
+  color: #F16D6F;
+  font-size: 14px;
+  text-align: center;
+  line-height: 48px;
+  position:fixed;
+  top: 50px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  background-color: #FDF0F0;
+}
+.fx-error-message img{
+  margin-right: 8px;
+}
+.fx-add-button,.fx-checkout,.product_single_add_button_disabled{
+  overflow:hidden; 
+  text-overflow:ellipsis; 
+  white-space:nowrap;
+  margin-top: 20px;
+}
+.secondary_title{
+  width: 100%;
+}
