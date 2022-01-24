@@ -307,9 +307,9 @@
   }
   /* 每一项大盒子 */
   .fx-detailsBox-transverse {
-    padding: 16px;
+    padding: 12px;
     padding-top: 0px;
-    width: 212px;
+    width: 204px;
     margin-right: 20px;
     background: #f9f9f9;
     display: block;
