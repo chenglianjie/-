@@ -257,11 +257,11 @@
   border-radius: 0;
   cursor: pointer;
 }
-@media screen and (min-width: 1200px) {
+/* @media screen and (min-width: 1200px) {
   .fx-gallery_left {
     max-width: inherit !important;
   }
-}
+} */
 
 /* 横向样式 只在pc端生效 */
 @media screen and (min-width: 769px) {
@@ -499,4 +499,8 @@
 }
 .secondary_title {
   width: 100%;
+}
+
+.fx-checkout-old {
+  position: absolute;
 }
