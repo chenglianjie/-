@@ -5905,16 +5905,41 @@ function propertyCombination(array) {
   });
   let arr3 = JSON.parse(JSON.stringify(arr2));
   arr2.forEach((item, index) => {
-    if (item.variants.length > 0) {
-      let newAttrs = item.variants.map((item2) => {
-        return item2.attrs_string;
+    if (item.variant_attrs.length > 0) {
+      let variant_attrs_arr = item.variant_attrs.map((item) => {
+        return item.value;
       });
-      arr3[index].attrs_string = newAttrs;
+      // console.log(
+      //   "itemvariant_attrs",
+      //   variant_attrs_arr,
+      //   variant_attrs_arr.length
+      // );
+      if (variant_attrs_arr.length > 1) {
+        let attrs = attrArrPermutations(variant_attrs_arr).flat();
+        // console.log("newAttrs 第一次", JSON.stringify(attrs));
+        newAttrs = attrs.flatMap((item) => {
+          // console.log("item", item, typeof item);
+          return item.join("/");
+        });
+        // console.log("newAttrs", newAttrs);
+        arr3[index].attrs_string = newAttrs;
+      } else {
+        arr3[index].attrs_string = variant_attrs_arr.flat();
+      }
     } else {
       arr3[index].attrs_string = [];
     }
+    // if (item.variants.length > 0) {
+    //   let newAttrs = item.variants.map((item2) => {
+    //     return item2.attrs_string;
+    //   });
+    //   arr3[index].attrs_string = newAttrs;
+    // } else {
+    //   arr3[index].attrs_string = [];
+    // }
   });
   arr = arr3;
+  // console.log("处理过后的arr", arr);
 }
 // pc端渲染combo详情
 function pcComboDetailsRender() {
@@ -6614,6 +6639,41 @@ function judgeGoodsIsHidden() {
       visibility: "visible",
       position: "relative",
     });
+  }
+}
+// 属性的排列组合
+function attrArrPermutations(arr) {
+  let len = arr.length;
+  // 当数组大于等于2个的时候
+  if (len >= 2) {
+    // 第一个数组的长度
+    let len1 = arr[0].length;
+    // 第二个数组的长度
+    let len2 = arr[1].length;
+    // 2个数组产生的组合数
+    let lenBoth = len1 * len2;
+    //  申明一个新数组
+    let items = new Array(lenBoth);
+    // 申明新数组的索引
+    let index = 0;
+    for (let i = 0; i < len1; i++) {
+      for (let j = 0; j < len2; j++) {
+        if (arr[0][i] instanceof Array) {
+          items[index] = arr[0][i].concat(arr[1][j]);
+        } else {
+          items[index] = [arr[0][i]].concat(arr[1][j]);
+        }
+        index++;
+      }
+    }
+    let newArr = new Array(len - 1);
+    for (let i = 2; i < arr.length; i++) {
+      newArr[i - 1] = arr[i];
+    }
+    newArr[0] = items;
+    return attrArrPermutations(newArr);
+  } else {
+    return [arr[0]];
   }
 }
 // 详情页的插入自己写的css(纯原生js)
