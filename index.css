@@ -308,7 +308,6 @@
   /* 每一项大盒子 */
   .fx-detailsBox-transverse {
     padding: 12px;
-    padding-top: 0px;
     width: 204px;
     margin-right: 20px;
     background: #f9f9f9;
@@ -323,7 +322,7 @@
   .fx-title-transverse {
     line-height: 20px;
     width: 180px;
-    max-height: 36px;
+    height: 36px;
     font-size: 14px;
     color: #333333;
     overflow: hidden;
