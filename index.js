@@ -5868,6 +5868,7 @@ function getDataAndInsertHtml() {
       hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
       // 返回数据处理 删除多余字段
       arr = returnedDataProcessing(res.data.data);
+      // console.log("处理过后的arr", arr);
       comboId = res.data.comboInfo.id;
       condition_num = res.data.comboInfo.condition_num; // 最低件数
       // 如果不是combo组合商品 直接return
@@ -5890,6 +5891,7 @@ function getDataAndInsertHtml() {
 }
 // 属性组合数据处理（bule/s）
 function propertyCombination(array) {
+  // console.log("属性组合数据处理之前的arr", arr);
   let arr2 = JSON.parse(JSON.stringify(array));
   array.forEach((item, index) => {
     if (item.variants.length > 0) {
@@ -5909,19 +5911,13 @@ function propertyCombination(array) {
       let variant_attrs_arr = item.variant_attrs.map((item) => {
         return item.value;
       });
-      // console.log(
-      //   "itemvariant_attrs",
-      //   variant_attrs_arr,
-      //   variant_attrs_arr.length
-      // );
+      // console.log("选中的属性", variant_attrs_arr);
       if (variant_attrs_arr.length > 1) {
         let attrs = attrArrPermutations(variant_attrs_arr).flat();
-        // console.log("newAttrs 第一次", JSON.stringify(attrs));
         newAttrs = attrs.flatMap((item) => {
-          // console.log("item", item, typeof item);
           return item.join("/");
         });
-        // console.log("newAttrs", newAttrs);
+
         arr3[index].attrs_string = newAttrs;
       } else {
         arr3[index].attrs_string = variant_attrs_arr.flat();
@@ -5929,17 +5925,23 @@ function propertyCombination(array) {
     } else {
       arr3[index].attrs_string = [];
     }
-    // if (item.variants.length > 0) {
-    //   let newAttrs = item.variants.map((item2) => {
-    //     return item2.attrs_string;
-    //   });
-    //   arr3[index].attrs_string = newAttrs;
-    // } else {
-    //   arr3[index].attrs_string = [];
-    // }
   });
+  arr3.forEach((itemss, index) => {
+    // console.log("itemsss", itemss);
+    if (itemss.variants.length > 0) {
+      let all_attrs = itemss.variants.map((elemt) => {
+        return elemt.attrs_string;
+      });
+      // console.log("全部的attrs", all_attrs);
+      let arrtsArr = itemss.attrs_string;
+      let s1 = new Set(arrtsArr);
+      let result = new Set(all_attrs.filter((item) => s1.has(item)));
+      itemss.attrs_string = Array.from(result);
+    }
+  });
+
   arr = arr3;
-  // console.log("处理过后的arr", arr);
+  // console.log("属性组合数据处理之后的arr", arr);
 }
 // pc端渲染combo详情
 function pcComboDetailsRender() {
@@ -6440,6 +6442,7 @@ function checkSell(type) {
     params.filter((item) => {
       return item.stock <= 0 || item.quantity > item.stock;
     }).length > 0;
+  // console.log("stockIsNull和购物车参数", stockIsNull, params);
   // 根据不同的变种id 展示不同的图片
   // params.forEach((itemobj, index) => {
   //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
@@ -6617,15 +6620,31 @@ function returnedDataProcessing(arrData) {
   if (hideGoods) {
     newArrData3.forEach((item9, index9) => {
       if (item9.variants.length > 0) {
-        item9.variants.map((item10, index10) => {
-          if (!item10.stock || item10.stock < 1) {
-            newArrData4[index9].variants.push(item9.variants[index10]);
-            newArrData4[index9].variants.splice(index9, 1);
-          }
-        });
+        let obj =
+          item9.variants.find((item10) => {
+            return item10.stock > 0;
+          }) || {};
+        let index =
+          item9.variants.findIndex((item10) => {
+            return item10.stock > 0;
+          }) || "";
+        if (index) {
+          newArrData4[index9].variants.splice(index, 1);
+          newArrData4[index9].variants.unshift(obj);
+        }
       }
     });
   }
+  newArrData4.forEach((item11, index11) => {
+    // 库存为0的放在最后
+    item11.variants.map((item10, index10) => {
+      if (!item10.stock || item10.stock < 1) {
+        newArrData4[index11].variants.push(item11.variants[index10]);
+        newArrData4[index11].variants.splice(index11, 1);
+      }
+    });
+  });
+  // console.log("隐藏时的newArrData4", newArrData4);
   return newArrData4;
 }
 // 判断商品详情是否隐藏
