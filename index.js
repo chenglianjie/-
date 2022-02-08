@@ -5574,7 +5574,8 @@
 });
 
 // 脚本开始
-const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top";
+// const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
+const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT =
@@ -5738,6 +5739,14 @@ function requestCartAndCheckedCoupon() {
       let goodsInfo = Object.values(data.cart).map((item) => {
         return { id: item.product_id, num: item.quantity };
       });
+      let skuIds = Object.values(data.cart).map((item) => {
+        if (item.variation_id) {
+          return item.variation_id;
+        } else {
+          // return item.product_id;
+          return "";
+        }
+      });
       // code 和code描述
       // let codeDescript = "";
       // let code = "";
@@ -5755,7 +5764,7 @@ function requestCartAndCheckedCoupon() {
       let code = data.coupons["cart discount"]
         ? data.coupons["cart discount"].code
         : "";
-      // 如果没用发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
+      // 如果没有发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
       if (!code) {
         // 执行老按钮逻辑
         document.querySelector(".fx-checkout-old").click();
@@ -5767,7 +5776,13 @@ function requestCartAndCheckedCoupon() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code, shop, goodsInfo, ids: product_id }),
+        body: JSON.stringify({
+          code,
+          shop,
+          goodsInfo,
+          ids: product_id,
+          skuIds: skuIds,
+        }),
       })
         .then((response) => response.json())
         .then((res) => {
@@ -6281,12 +6296,16 @@ function jumpTocart(params) {
                 if (hash && code) {
                   // 使用优惠卷
                   useCoupon();
+                } else if (hash) {
+                  window.location.href = url;
                 }
               });
           } else {
             if (hash && code) {
               // 使用优惠卷
               useCoupon();
+            } else if (hash) {
+              window.location.href = url;
             }
           }
           // 移除loading状态
@@ -6629,22 +6648,23 @@ function returnedDataProcessing(arrData) {
             return item10.stock > 0;
           }) || "";
         if (index) {
+          // console.log("进来的时候", index9, index, obj);
           newArrData4[index9].variants.splice(index, 1);
           newArrData4[index9].variants.unshift(obj);
         }
       }
     });
   }
-  newArrData4.forEach((item11, index11) => {
-    // 库存为0的放在最后
-    item11.variants.map((item10, index10) => {
-      if (!item10.stock || item10.stock < 1) {
-        newArrData4[index11].variants.push(item11.variants[index10]);
-        newArrData4[index11].variants.splice(index11, 1);
-      }
-    });
-  });
-  // console.log("隐藏时的newArrData4", newArrData4);
+  console.log("隐藏时的newArrData4", newArrData4);
+  // newArrData4.forEach((item11, index11) => {
+  //   // 库存为0的放在最后
+  //   item11.variants.map((item10, index10) => {
+  //     if (!item10.stock || item10.stock < 1) {
+  //       newArrData4[index11].variants.push(item11.variants[index10]);
+  //       newArrData4[index11].variants.splice(index11, 1);
+  //     }
+  //   });
+  // });
   return newArrData4;
 }
 // 判断商品详情是否隐藏
