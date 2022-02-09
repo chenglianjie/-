@@ -5744,7 +5744,7 @@ function requestCartAndCheckedCoupon() {
           return item.variation_id;
         } else {
           // return item.product_id;
-          return "";
+          return;
         }
       });
       // code 和code描述
