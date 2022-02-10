@@ -501,5 +501,5 @@
 }
 
 .fx-checkout-old {
-  position: absolute;
+  position: absolute !important;
 }

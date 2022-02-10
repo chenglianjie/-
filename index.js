@@ -5586,35 +5586,36 @@ let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连�
 let custormStyleConfig = {}; // 自定义样式配置对象
 let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
-
-$(function () {
-  let { pathname = "" } = window.location;
-  // 点击购物车图标按钮时
-  $(".icon-gouwuche").on("click", () => {
-    // &&pathname.indexOf("cart") === -1
+window.onload = function () {
+  $(function () {
+    let { pathname = "" } = window.location;
+    // 点击购物车图标按钮时
+    $(".icon-gouwuche").on("click", () => {
+      // &&pathname.indexOf("cart") === -1
+      if (document.querySelector(".inlineCart")) {
+        getCartStyleConfig("popUpCart");
+      }
+    });
+    // 购物车是弹窗和侧边弹出的情况
     if (document.querySelector(".inlineCart")) {
-      getCartStyleConfig("popUpCart");
+      $(".header-right .cart").on("click", () => {
+        getCartStyleConfig("popUpCart");
+      });
+    }
+    // 商品详情页页面逻辑
+    if (pathname.indexOf("products") !== -1) {
+      // 插入商品详情css
+      appendCss();
+      // 获取详情数据 并插入html
+      getDataAndInsertHtml();
+    }
+    // 购物车是单独页面情况
+    if (pathname.indexOf("cart") !== -1) {
+      getCartStyleConfig();
+      return;
     }
   });
-  // 购物车是弹窗和侧边弹出的情况
-  if (document.querySelector(".inlineCart")) {
-    $(".header-right .cart").on("click", () => {
-      getCartStyleConfig("popUpCart");
-    });
-  }
-  // 商品详情页页面逻辑
-  if (pathname.indexOf("products") !== -1) {
-    // 插入商品详情css
-    appendCss();
-    // 获取详情数据 并插入html
-    getDataAndInsertHtml();
-  }
-  // 购物车是单独页面情况
-  if (pathname.indexOf("cart") !== -1) {
-    getCartStyleConfig();
-    return;
-  }
-});
+};
 // 购物车优惠卷逻辑判断 购物车是单独页面的情况
 function cartAndCouponJudge() {
   // 插入商品详情css
@@ -5623,6 +5624,8 @@ function cartAndCouponJudge() {
   let checkoutButtonTest = $(".cart-info .checkout").html();
   // 给checkout旧按钮添加一个新的类名
   $(".cart-info .checkout").addClass("fx-checkout-old");
+  // 老按钮隐藏
+  $(".cart-info .fx-checkout-old").css({ visibility: "hidden" });
   let backgroundColor = ""; // 背景颜色
   let textColor = ""; // 文字颜色
   if (custormStyleConfig.button_style === 2) {
@@ -5639,7 +5642,7 @@ function cartAndCouponJudge() {
       custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
   }
   // 创造一个新的checkout按钮
-  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
+  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">替换的checkout按钮<button>`;
   if (document.querySelector("#discount_price")) {
     // 插入新的按钮
     $(".cart-info #discount_price").after(newCheckoutButtonDom);
@@ -5658,8 +5661,6 @@ function cartAndCouponJudge() {
       `color:${textColor} !important;border:1px solid ${backgroundColor} !important  `
     );
   }
-  // 老按钮隐藏
-  $(".cart-info .fx-checkout-old").css({ visibility: "hidden" });
   // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
   $(".fx-checkout").on("click", () => {
     requestCartAndCheckedCoupon();
