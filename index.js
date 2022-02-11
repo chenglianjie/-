@@ -5642,7 +5642,7 @@ function cartAndCouponJudge() {
       custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
   }
   // 创造一个新的checkout按钮
-  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">替换的checkout按钮<button>`;
+  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
   if (document.querySelector("#discount_price")) {
     // 插入新的按钮
     $(".cart-info #discount_price").after(newCheckoutButtonDom);
@@ -6269,6 +6269,7 @@ function jumpTocart(params) {
           let errorMsg = result[0].message;
           let message = `<div class="fx-error-message"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
           $("body").append(message);
+          $(".fx-add-button").removeClass("fx-add-button-loading");
           setTimeout(() => {
             $(".fx-error-message").remove();
           }, 3000);
