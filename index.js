@@ -5572,14 +5572,13 @@
     S
   );
 });
-
+console.log("脚本执行了", pathname);
 // 脚本开始
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
 // const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
-const ASSET_ENDPOINT =
-  "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
+const ASSET_ENDPOINT ="https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
 let arr = []; // combo详情数组
 let comboId = ""; // comboId
 let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连续频繁点击
@@ -5589,6 +5588,7 @@ let condition_num = 1; // 最低件数
 window.onload = function () {
   $(function () {
     let { pathname = "" } = window.location;
+ 
     // 点击购物车图标按钮时
     $(".icon-gouwuche").on("click", () => {
       // &&pathname.indexOf("cart") === -1
@@ -5604,6 +5604,7 @@ window.onload = function () {
     }
     // 商品详情页页面逻辑
     if (pathname.indexOf("products") !== -1) {
+      console.log("进入详情页了");
       // 插入商品详情css
       appendCss();
       // 获取详情数据 并插入html
