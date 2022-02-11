@@ -5574,8 +5574,8 @@
 });
 
 // 脚本开始
-// const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
-const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
+const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
+// const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT =
@@ -5626,6 +5626,8 @@ function cartAndCouponJudge() {
   $(".cart-info .checkout").addClass("fx-checkout-old");
   // 老按钮隐藏
   $(".cart-info .fx-checkout-old").css({ visibility: "hidden" });
+  // 移除paypal 支付
+  $(".paypal-button-render").remove();
   let backgroundColor = ""; // 背景颜色
   let textColor = ""; // 文字颜色
   if (custormStyleConfig.button_style === 2) {
@@ -5650,6 +5652,7 @@ function cartAndCouponJudge() {
     // 插入新的按钮
     $(".cart-info .cart-info_price").after(newCheckoutButtonDom);
   }
+
   // 改变checkout的背景颜色和文字颜色
   if (backgroundColor && textColor) {
     // 背景颜色和文字颜色
@@ -5722,6 +5725,8 @@ function carPopUptAndCouponJudge() {
 }
 // 请求购物车接口以及验证优惠卷逻辑接口
 function requestCartAndCheckedCoupon() {
+  $(".fx-checkout").removeClass("transition-main");
+  $(".fx-checkout").addClass("fx-checkout-loading");
   // 请求购物车详情接口
   fetch(`${origin}/api/store/cart`, {
     method: "GET",
@@ -5744,24 +5749,9 @@ function requestCartAndCheckedCoupon() {
         if (item.variation_id) {
           return item.variation_id;
         } else {
-          // return item.product_id;
           return;
         }
       });
-      // code 和code描述
-      // let codeDescript = "";
-      // let code = "";
-      // if (document.querySelector("#discount_price")) {
-      //   codeDescript = $("#discount_price .secondary_title").html();
-      //   let index = codeDescript.indexOf("</span>");
-      //   codeDescript = codeDescript.slice(index).replace("</span>", "").trim();
-      // }
-      // let codeArr = data.coupons.filter((item) => {
-      //   return item.description === codeDescript;
-      // });
-      // if (codeArr.length > 0) {
-      //   code = codeArr[0].code;
-      // }
       let code = data.coupons["cart discount"]
         ? data.coupons["cart discount"].code
         : "";
@@ -5769,6 +5759,10 @@ function requestCartAndCheckedCoupon() {
       if (!code) {
         // 执行老按钮逻辑
         document.querySelector(".fx-checkout-old").click();
+        setTimeout(() => {
+          $(".fx-checkout").addClass("transition-main");
+          $(".fx-checkout").removeClass("fx-checkout-loading");
+        }, 1500);
         return;
       }
       // 请求检查优惠卷接口
@@ -5801,10 +5795,18 @@ function requestCartAndCheckedCoupon() {
                 .then((res) => {
                   // 执行老按钮逻辑
                   document.querySelector(".fx-checkout-old").click();
+                  setTimeout(() => {
+                    $(".fx-checkout").addClass("transition-main");
+                    $(".fx-checkout").removeClass("fx-checkout-loading");
+                  }, 1500);
                 });
             } else {
               // 执行老按钮逻辑
               document.querySelector(".fx-checkout-old").click();
+              setTimeout(() => {
+                $(".fx-checkout").addClass("transition-main");
+                $(".fx-checkout").removeClass("fx-checkout-loading");
+              }, 1500);
             }
           }
         });
