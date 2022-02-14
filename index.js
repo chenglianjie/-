@@ -5572,7 +5572,7 @@
     S
   );
 });
-console.log("脚本执行了", pathname);
+console.log("脚本执行了")
 // 脚本开始
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
 // const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
@@ -5585,13 +5585,13 @@ let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连�
 let custormStyleConfig = {}; // 自定义样式配置对象
 let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
-window.onload = function () {
+// window.onload = function () {
+  console.log(" $function之前")
   $(function () {
+    console.log("进入jq逻辑了")
     let { pathname = "" } = window.location;
- 
     // 点击购物车图标按钮时
     $(".icon-gouwuche").on("click", () => {
-      // &&pathname.indexOf("cart") === -1
       if (document.querySelector(".inlineCart")) {
         getCartStyleConfig("popUpCart");
       }
@@ -5604,7 +5604,7 @@ window.onload = function () {
     }
     // 商品详情页页面逻辑
     if (pathname.indexOf("products") !== -1) {
-      console.log("进入详情页了");
+      console.log("加入详情页逻辑了")
       // 插入商品详情css
       appendCss();
       // 获取详情数据 并插入html
@@ -5616,7 +5616,7 @@ window.onload = function () {
       return;
     }
   });
-};
+// };
 // 购物车优惠卷逻辑判断 购物车是单独页面的情况
 function cartAndCouponJudge() {
   // 插入商品详情css
@@ -5877,6 +5877,7 @@ function getCartStyleConfig(type) {
 }
 // 获取数据以及插入html
 function getDataAndInsertHtml() {
+  console.log("进入获取combo数据")
   // 请求combo详情接口
   fetch(
     `${API_ENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.href}`
@@ -5887,7 +5888,6 @@ function getDataAndInsertHtml() {
       hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
       // 返回数据处理 删除多余字段
       arr = returnedDataProcessing(res.data.data);
-      // console.log("处理过后的arr", arr);
       comboId = res.data.comboInfo.id;
       condition_num = res.data.comboInfo.condition_num; // 最低件数
       // 如果不是combo组合商品 直接return
@@ -5910,7 +5910,6 @@ function getDataAndInsertHtml() {
 }
 // 属性组合数据处理（bule/s）
 function propertyCombination(array) {
-  // console.log("属性组合数据处理之前的arr", arr);
   let arr2 = JSON.parse(JSON.stringify(array));
   array.forEach((item, index) => {
     if (item.variants.length > 0) {
@@ -5930,7 +5929,6 @@ function propertyCombination(array) {
       let variant_attrs_arr = item.variant_attrs.map((item) => {
         return item.value;
       });
-      // console.log("选中的属性", variant_attrs_arr);
       if (variant_attrs_arr.length > 1) {
         let attrs = attrArrPermutations(variant_attrs_arr).flat();
         newAttrs = attrs.flatMap((item) => {
@@ -5946,12 +5944,10 @@ function propertyCombination(array) {
     }
   });
   arr3.forEach((itemss, index) => {
-    // console.log("itemsss", itemss);
     if (itemss.variants.length > 0) {
       let all_attrs = itemss.variants.map((elemt) => {
         return elemt.attrs_string;
       });
-      // console.log("全部的attrs", all_attrs);
       let arrtsArr = itemss.attrs_string;
       let s1 = new Set(arrtsArr);
       let result = new Set(all_attrs.filter((item) => s1.has(item)));
@@ -5960,7 +5956,6 @@ function propertyCombination(array) {
   });
 
   arr = arr3;
-  // console.log("属性组合数据处理之后的arr", arr);
 }
 // pc端渲染combo详情
 function pcComboDetailsRender() {
@@ -6466,7 +6461,6 @@ function checkSell(type) {
     params.filter((item) => {
       return item.stock <= 0 || item.quantity > item.stock;
     }).length > 0;
-  // console.log("stockIsNull和购物车参数", stockIsNull, params);
   // 根据不同的变种id 展示不同的图片
   // params.forEach((itemobj, index) => {
   //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
@@ -6653,14 +6647,12 @@ function returnedDataProcessing(arrData) {
             return item10.stock > 0;
           }) || "";
         if (index) {
-          // console.log("进来的时候", index9, index, obj);
           newArrData4[index9].variants.splice(index, 1);
           newArrData4[index9].variants.unshift(obj);
         }
       }
     });
   }
-  console.log("隐藏时的newArrData4", newArrData4);
   // newArrData4.forEach((item11, index11) => {
   //   // 库存为0的放在最后
   //   item11.variants.map((item10, index10) => {
