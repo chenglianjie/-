@@ -5572,23 +5572,29 @@
     S
   );
 });
-console.log("脚本执行了")
+// sentry 引入
+var script = document.createElement("script");
+script.setAttribute("src","https://js.sentry-cdn.com/990dbfca141f4ccfa45ef192cf2ef1cb.min.js");
+script.setAttribute("crossorigin", "anonymous");
+script.setAttribute("data-lazy", "no");
+document.getElementsByTagName("head")[0].appendChild(script);
+console.log("脚本执行了");
 // 脚本开始
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
 // const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
-const ASSET_ENDPOINT ="https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
+const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
 let arr = []; // combo详情数组
 let comboId = ""; // comboId
 let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连续频繁点击
 let custormStyleConfig = {}; // 自定义样式配置对象
 let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
-// window.onload = function () {
-  console.log(" $function之前")
+$(document).ready(function () {
+  console.log(" $function之前");
   $(function () {
-    console.log("进入jq逻辑了")
+    console.log("进入jq逻辑了");
     let { pathname = "" } = window.location;
     // 点击购物车图标按钮时
     $(".icon-gouwuche").on("click", () => {
@@ -5604,7 +5610,7 @@ let condition_num = 1; // 最低件数
     }
     // 商品详情页页面逻辑
     if (pathname.indexOf("products") !== -1) {
-      console.log("加入详情页逻辑了")
+      console.log("加入详情页逻辑了");
       // 插入商品详情css
       appendCss();
       // 获取详情数据 并插入html
@@ -5616,7 +5622,7 @@ let condition_num = 1; // 最低件数
       return;
     }
   });
-// };
+});
 // 购物车优惠卷逻辑判断 购物车是单独页面的情况
 function cartAndCouponJudge() {
   // 插入商品详情css
@@ -5645,7 +5651,7 @@ function cartAndCouponJudge() {
       custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
   }
   // 创造一个新的checkout按钮
-  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
+  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout  secondary_title transition-main">${checkoutButtonTest}<button>`;
   if (document.querySelector("#discount_price")) {
     // 插入新的按钮
     $(".cart-info #discount_price").after(newCheckoutButtonDom);
@@ -5698,7 +5704,7 @@ function carPopUptAndCouponJudge() {
       custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
   }
   // 新的按钮
-  let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart checkout secondary_title transition-main">${checkoutButtonTest}<button>`;
+  let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart  secondary_title transition-main">${checkoutButtonTest}<button>`;
   if (!document.querySelector(".fx-checkout-inlineCart")) {
     // 插入新的按钮
     $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
@@ -5737,7 +5743,12 @@ function requestCartAndCheckedCoupon() {
       let hash = data.hash;
       if (Array.isArray(data.cart) && data.cart.length === 0) {
         // 购物车为空 直接执行老按钮逻辑
-        document.querySelector(".fx-checkout-old").click();
+        // 执行老按钮逻辑
+        if (document.querySelector(".fx-checkout-old")) {
+          document.querySelector(".fx-checkout-old").click();
+        } else {
+          document.querySelector(".checkout").click();
+        }
         return;
       }
       let product_id = Object.values(data.cart).map((item) => {
@@ -5759,7 +5770,11 @@ function requestCartAndCheckedCoupon() {
       // 如果没有发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
       if (!code) {
         // 执行老按钮逻辑
-        document.querySelector(".fx-checkout-old").click();
+        if (document.querySelector(".fx-checkout-old")) {
+          document.querySelector(".fx-checkout-old").click();
+        } else {
+          document.querySelector(".checkout").click();
+        }
         setTimeout(() => {
           $(".fx-checkout").addClass("transition-main");
           $(".fx-checkout").removeClass("fx-checkout-loading");
@@ -5795,7 +5810,12 @@ function requestCartAndCheckedCoupon() {
                 .then((response) => response.json())
                 .then((res) => {
                   // 执行老按钮逻辑
-                  document.querySelector(".fx-checkout-old").click();
+                  // 执行老按钮逻辑
+                  if (document.querySelector(".fx-checkout-old")) {
+                    document.querySelector(".fx-checkout-old").click();
+                  } else {
+                    document.querySelector(".checkout").click();
+                  }
                   setTimeout(() => {
                     $(".fx-checkout").addClass("transition-main");
                     $(".fx-checkout").removeClass("fx-checkout-loading");
@@ -5803,7 +5823,12 @@ function requestCartAndCheckedCoupon() {
                 });
             } else {
               // 执行老按钮逻辑
-              document.querySelector(".fx-checkout-old").click();
+              // 执行老按钮逻辑
+              if (document.querySelector(".fx-checkout-old")) {
+                document.querySelector(".fx-checkout-old").click();
+              } else {
+                document.querySelector(".checkout").click();
+              }
               setTimeout(() => {
                 $(".fx-checkout").addClass("transition-main");
                 $(".fx-checkout").removeClass("fx-checkout-loading");
@@ -6653,15 +6678,16 @@ function returnedDataProcessing(arrData) {
       }
     });
   }
-  // newArrData4.forEach((item11, index11) => {
-  //   // 库存为0的放在最后
-  //   item11.variants.map((item10, index10) => {
-  //     if (!item10.stock || item10.stock < 1) {
-  //       newArrData4[index11].variants.push(item11.variants[index10]);
-  //       newArrData4[index11].variants.splice(index11, 1);
-  //     }
-  //   });
-  // });
+  newArrData4.forEach((item11, index11) => {
+    // 库存为0的放在最后
+    item11.variants.map((item10, index10) => {
+      if (!item10.stock || item10.stock < 1) {
+        newArrData4[index11].variants.push(item11.variants[index10]);
+        newArrData4[index11].variants.splice(index11, 1);
+      }
+    });
+  });
+  console.log("newArrData4", newArrData4);
   return newArrData4;
 }
 // 判断商品详情是否隐藏
