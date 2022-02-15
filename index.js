@@ -5592,9 +5592,8 @@ let custormStyleConfig = {}; // 自定义样式配置对象
 let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
 $(document).ready(function () {
-  console.log(" $function之前");
   $(function () {
-    console.log("进入jq逻辑了");
+    console.log("jq逻辑执行了");
     let { pathname = "" } = window.location;
     // 点击购物车图标按钮时
     $(".icon-gouwuche").on("click", () => {
@@ -5610,7 +5609,6 @@ $(document).ready(function () {
     }
     // 商品详情页页面逻辑
     if (pathname.indexOf("products") !== -1) {
-      console.log("加入详情页逻辑了");
       // 插入商品详情css
       appendCss();
       // 获取详情数据 并插入html
@@ -5902,7 +5900,6 @@ function getCartStyleConfig(type) {
 }
 // 获取数据以及插入html
 function getDataAndInsertHtml() {
-  console.log("进入获取combo数据")
   // 请求combo详情接口
   fetch(
     `${API_ENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.href}`
@@ -5913,6 +5910,7 @@ function getDataAndInsertHtml() {
       hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
       // 返回数据处理 删除多余字段
       arr = returnedDataProcessing(res.data.data);
+      console.log("结果处理的数据",arr)
       comboId = res.data.comboInfo.id;
       condition_num = res.data.comboInfo.condition_num; // 最低件数
       // 如果不是combo组合商品 直接return
@@ -6490,6 +6488,7 @@ function checkSell(type) {
   // params.forEach((itemobj, index) => {
   //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
   // });
+  console.log("加入购物车数据",stockIsNull,params)
   // 判断渲染的加入购物车按钮
   AddCartButtonStyle(stockIsNull, params);
 }
@@ -6661,7 +6660,16 @@ function returnedDataProcessing(arrData) {
   // 如果商品隐藏，最低价格sold out 筛选有库存的商品价格最低的在最前面
   let newArrData4 = JSON.parse(JSON.stringify(newArrData3));
   if (hideGoods) {
-    newArrData3.forEach((item9, index9) => {
+      // 把没有选中的变种id筛选掉
+  newArrData4.forEach((item12)=>{
+    if (item12.variants.length > 0) {
+      let newVariants = item12.variants.filter((item13)=>{
+        return item12.arrtsArr.includes(item13.attrs[0].value)
+      })
+      item12.variants = newVariants
+    }
+  })
+  newArrData4.forEach((item9, index9) => {
       if (item9.variants.length > 0) {
         let obj =
           item9.variants.find((item10) => {
@@ -6677,17 +6685,20 @@ function returnedDataProcessing(arrData) {
         }
       }
     });
+
   }
-  newArrData4.forEach((item11, index11) => {
-    // 库存为0的放在最后
-    item11.variants.map((item10, index10) => {
-      if (!item10.stock || item10.stock < 1) {
-        newArrData4[index11].variants.push(item11.variants[index10]);
-        newArrData4[index11].variants.splice(index11, 1);
-      }
-    });
-  });
-  console.log("newArrData4", newArrData4);
+  // newArrData4.forEach((item11, index11) => {
+  //   // 库存为0的放在最后
+  //   item11.variants.map((item10, index10) => {
+  //     if (!item10.stock || item10.stock < 1) {
+  //       newArrData4[index11].variants.push(item11.variants[index10]);
+  //       newArrData4[index11].variants.splice(index11, 1);
+  //     }
+  //   });
+  // });
+
+
+  console.log("newArrData4",newArrData4)
   return newArrData4;
 }
 // 判断商品详情是否隐藏
