@@ -5574,7 +5574,7 @@
 });
 // sentry 引入
 var script = document.createElement("script");
-script.setAttribute("src","https://js.sentry-cdn.com/990dbfca141f4ccfa45ef192cf2ef1cb.min.js");
+script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js");
 script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
