@@ -5578,7 +5578,7 @@ script.setAttribute("src","https://js.sentry-cdn.com/990dbfca141f4ccfa45ef192cf2
 script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
-console.log("脚本执行了");
+// console.log("脚本执行了");
 // 脚本开始
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
 // const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
@@ -5591,22 +5591,18 @@ let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连�
 let custormStyleConfig = {}; // 自定义样式配置对象
 let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
-$(document).ready(function () {
   $(function () {
-    console.log("jq逻辑执行了");
+    console.log("jq is readay");
     let { pathname = "" } = window.location;
-    // 点击购物车图标按钮时
-    $(".icon-gouwuche").on("click", () => {
-      if (document.querySelector(".inlineCart")) {
-        getCartStyleConfig("popUpCart");
+    // 判断购物车是弹窗和侧边弹出的情况
+     setTimeout(()=>{
+       if (document.querySelector(".inlineCart")) {
+        $(".header-right .cart").on("click", () => {
+          getCartStyleConfig("popUpCart");
+        });
       }
-    });
-    // 购物车是弹窗和侧边弹出的情况
-    if (document.querySelector(".inlineCart")) {
-      $(".header-right .cart").on("click", () => {
-        getCartStyleConfig("popUpCart");
-      });
-    }
+     },2500)
+
     // 商品详情页页面逻辑
     if (pathname.indexOf("products") !== -1) {
       // 插入商品详情css
@@ -5620,7 +5616,6 @@ $(document).ready(function () {
       return;
     }
   });
-});
 // 购物车优惠卷逻辑判断 购物车是单独页面的情况
 function cartAndCouponJudge() {
   // 插入商品详情css
@@ -5633,6 +5628,7 @@ function cartAndCouponJudge() {
   $(".cart-info .fx-checkout-old").css({ visibility: "hidden" });
   // 移除paypal 支付
   $(".paypal-button-render").remove();
+  // console.log("老按钮和paypal",document.querySelector(".cart-info .checkout"),document.querySelector(".cart-info .fx-checkout-old"))
   let backgroundColor = ""; // 背景颜色
   let textColor = ""; // 文字颜色
   if (custormStyleConfig.button_style === 2) {
@@ -5681,8 +5677,9 @@ function carPopUptAndCouponJudge() {
   if (document.querySelector(".inlineCart .emptyCart")) {
     return;
   }
-
   $(".inlineCart .checkout").addClass("fx-checkout-old");
+  // 移除paypal 支付
+  $(".paypal-button-render").remove();
   let checkoutButtonTest = $(
     ".inlineCart .checkout_flex .fx-checkout-old span"
   ).html();
@@ -5703,6 +5700,7 @@ function carPopUptAndCouponJudge() {
   }
   // 新的按钮
   let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart  secondary_title transition-main">${checkoutButtonTest}<button>`;
+  
   if (!document.querySelector(".fx-checkout-inlineCart")) {
     // 插入新的按钮
     $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
@@ -5730,6 +5728,8 @@ function carPopUptAndCouponJudge() {
 }
 // 请求购物车接口以及验证优惠卷逻辑接口
 function requestCartAndCheckedCoupon() {
+  $(".fx-checkout-inlineCart").removeClass("transition-main");
+  $(".fx-checkout-inlineCart").addClass("fx-checkout-loading");
   $(".fx-checkout").removeClass("transition-main");
   $(".fx-checkout").addClass("fx-checkout-loading");
   // 请求购物车详情接口
@@ -5776,6 +5776,8 @@ function requestCartAndCheckedCoupon() {
         setTimeout(() => {
           $(".fx-checkout").addClass("transition-main");
           $(".fx-checkout").removeClass("fx-checkout-loading");
+          $(".fx-checkout-inlineCart").addClass("transition-main");
+          $(".fx-checkout-inlineCart").removeClass("fx-checkout-loading");
         }, 1500);
         return;
       }
@@ -5893,7 +5895,14 @@ function getCartStyleConfig(type) {
           carPopUptAndCouponJudge();
         } else {
           // 购物车时单独页面的情况
-          cartAndCouponJudge();
+          var timer = window.setInterval(()=>{
+            if(!document.querySelector(".fx-checkout-old")){
+              cartAndCouponJudge();
+            }else{
+              window.clearInterval(timer);
+            }
+          },600)
+          // cartAndCouponJudge();
         }
       }
     });
@@ -5910,7 +5919,7 @@ function getDataAndInsertHtml() {
       hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
       // 返回数据处理 删除多余字段
       arr = returnedDataProcessing(res.data.data);
-      console.log("结果处理的数据",arr)
+      // console.log("结果处理的数据",arr)
       comboId = res.data.comboInfo.id;
       condition_num = res.data.comboInfo.condition_num; // 最低件数
       // 如果不是combo组合商品 直接return
@@ -6488,7 +6497,7 @@ function checkSell(type) {
   // params.forEach((itemobj, index) => {
   //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
   // });
-  console.log("加入购物车数据",stockIsNull,params)
+  // console.log("加入购物车数据",stockIsNull,params)
   // 判断渲染的加入购物车按钮
   AddCartButtonStyle(stockIsNull, params);
 }
@@ -6698,7 +6707,7 @@ function returnedDataProcessing(arrData) {
   // });
 
 
-  console.log("newArrData4",newArrData4)
+  // console.log("newArrData4",newArrData4)
   return newArrData4;
 }
 // 判断商品详情是否隐藏
