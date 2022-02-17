@@ -5915,8 +5915,10 @@ function getDataAndInsertHtml() {
   )
     .then((response) => response.json())
     .then((res) => {
-      // 判断是否隐藏商品详情
-      hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
+      if(res.data && res.data.comboInfo){
+        // 判断是否隐藏商品详情
+        hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
+      }
       // 返回数据处理 删除多余字段
       arr = returnedDataProcessing(res.data.data);
       // console.log("结果处理的数据",arr)
