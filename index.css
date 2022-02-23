@@ -1,4 +1,5 @@
 .fx-details-bigBox {
+  width: 100%;
   margin-top: 20px;
 }
 .selectBox {
@@ -258,6 +259,9 @@
   border-radius: 0;
   cursor: pointer;
 }
+.fx-checkout-theme {
+  line-height: 20px;
+}
 /* @media screen and (min-width: 1200px) {
   .fx-gallery_left {
     max-width: inherit !important;
@@ -450,7 +454,7 @@
 .fx-checkout-loading {
   opacity: 0.5;
   cursor: not-allowed;
-  background-color: #bfbfbf;
+  background-color: #bfbfbf !important;
 }
 .fx-add-button-loading:before,
 .fx-checkout-loading:before {
@@ -495,7 +499,7 @@
   background-color: #fdf0f0;
 }
 .fx-error-message2 {
-  width: 710px;
+  width: 730px;
   display: inline;
 }
 .fx-error-message img {
@@ -516,4 +520,33 @@
 
 .fx-checkout-old {
   position: absolute !important;
+}
+
+/* basci主题css */
+.basic—addToCartButton {
+  height: 48px;
+  line-height: 22px;
+}
+.basic—addToCartButton-loading {
+  line-height: 48px;
+  cursor: not-allowed;
+  background-color: #bfbfbf !important;
+  color: white;
+}
+.fx-addCartButton-text {
+  display: inline-block;
+  /* width: 100%; */
+}
+.basic—addToCartButton-loading :before {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  /* margin-right: 10px; */
+  animation: rotate 1s linear infinite;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAD3SURBVHgBrVWBDYIwELyygN1ANtBRGAEnkRXcwA10A+IE6AS4AThB/YdrJIqCpZdcn1B6+W/+D4MZcM5ZCcrWGNNiKUSwci/ocy5MEQo5nAkL4UlYU1hjjhhghl54jxjQkgeiGWKAog1pEQMsX1EgFphhiVgQsSOztIkubIclF3tnXCXoJ0DFtogAFfSjtEY4NoyPbtUL1YtFINiPFZih4iK0IaPEM6nwMHxpBw2a/iHmp6X+OEcDcKObv8Xc18roKJNOwuloxibEjH0sQR0kRd9fV+GN29oJ2mKd2Qp3YrhnzCwnfzNWj5KVjJqBmSHu7V8x+Qt4AmnzKn2TabsxAAAAAElFTkSuQmCC");
+  background-repeat: no-repeat;
+  top: 4px;
+  position: relative;
+  left: -100px;
 }
