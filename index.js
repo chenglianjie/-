@@ -5572,9 +5572,21 @@
     S
   );
 });
+function rewirteLog() {
+  console.log = (function (log) {
+    return function () {};
+  })(console.log);
+}
+console.log("window", window.current_theme);
+// 日志是否清除
+// rewirteLog();
 // sentry 引入
 var script = document.createElement("script");
-script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js");
+// script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js"); // 正式上线url
+script.setAttribute(
+  "src",
+  "https://js.sentry-cdn.com/e3ffbc96548a4db58a401a9cbbae68b8.min.js"
+); // 测试url
 script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
@@ -5584,38 +5596,520 @@ const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; /
 // const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
-const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
+const ASSET_ENDPOINT =
+  "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
 let arr = []; // combo详情数组
 let comboId = ""; // comboId
 let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连续频繁点击
-let custormStyleConfig = {}; // 自定义样式配置对象
+let custormStyleConfig = {
+  button_style: 1, // 1 跟随主题 2 自定义设置
+  product_attrs_style: 1, // 产品属性布局 1 组合下拉框 2 多个下拉框 3 平铺
+  product_card_style: 1, // 产品卡片布局 1  纵向  2 横向
+}; // 自定义样式配置对象
 let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
-  $(function () {
-    console.log("jq is readay");
-    let { pathname = "" } = window.location;
-    // 判断购物车是弹窗和侧边弹出的情况
-     setTimeout(()=>{
-       if (document.querySelector(".inlineCart")) {
-        $(".header-right .cart").on("click", () => {
-          getCartStyleConfig("popUpCart");
-        });
-      }
-     },2500)
+let theme =
+  window.current_theme || window.localStorage.getItem("current_theme"); // 当前的主题
 
-    // 商品详情页页面逻辑
-    if (pathname.indexOf("products") !== -1) {
-      // 插入商品详情css
-      appendCss();
-      // 获取详情数据 并插入html
-      getDataAndInsertHtml();
+$(function () {
+  console.log("jq is readay");
+  let { pathname = "" } = window.location;
+  // 判断购物车是弹窗和侧边弹出的情况
+  setTimeout(() => {
+    if (document.querySelector(".inlineCart")) {
+      $(".header-right .cart").on("click", () => {
+        getCartStyleConfig("popUpCart");
+      });
     }
-    // 购物车是单独页面情况
-    if (pathname.indexOf("cart") !== -1) {
-      getCartStyleConfig();
-      return;
+  }, 2500);
+  // 商品详情页页面逻辑
+  if (pathname.indexOf("products") !== -1) {
+    // 插入商品详情css
+    appendCss();
+    // 获取详情数据 并插入html
+    getDataAndInsertHtml();
+  }
+  // 购物车是单独页面情况
+  if (pathname.indexOf("cart") !== -1) {
+    getCartStyleConfig();
+    return;
+  }
+});
+// 获取combo数据以及插入html
+function getDataAndInsertHtml() {
+  // 请求combo详情接口
+  fetch(
+    `${API_ENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.href}`
+  )
+    .then((response) => response.json())
+    .then((res) => {
+      console.log("combo详情接口数据", res);
+      if (res.code !== 200 && !res.data.is_combo) {
+        console.error("combo详情接口错误,或者不是combo组合商品");
+        return;
+      }
+      if (res.data && res.data.comboInfo) {
+        // 判断是否隐藏商品详情
+        hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
+      }
+      // 返回数据处理 删除多余字段
+      arr = returnedDataProcessing(res.data.data);
+      // console.log("结果处理的数据",arr)
+      comboId = res.data.comboInfo.id;
+      condition_num = res.data.comboInfo.condition_num; // 最低件数
+      // 如果不是combo组合商品 直接return
+      // if (!res.data.is_combo) {
+      //   // $(".gallery_left").removeClass("fx-gallery_left");
+      //   // 判断购物车方式 是不是弹出框或者抽屉的方式
+      //   if (document.querySelector(".inlineCart")) {
+      //     document
+      //       .querySelector(".product_single_add .product_single_add_button")
+      //       .addEventListener("click", () => {
+      //         carPopUptAndCouponJudge();
+      //       });
+      //   }
+      //   return;
+      // }
+      // $(".gallery_left").addClass("fx-gallery_left");
+
+      // 获取自定义样式配置
+      getStyleConfig();
+    });
+}
+// 获取样式配置
+function getStyleConfig() {
+  fetch(`${API_ENDPOINT}/api/getStyleSetting?shop=${shop}`, {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((res) => {
+      console.log("样式配置", res);
+      // button_style 1 为跟随主题 2 为自定义设置
+      if (res.data.button_style === 2) {
+        res.data.button_style_details = JSON.parse(
+          res.data.button_style_details
+        );
+      }
+      custormStyleConfig = res.data;
+      // 获取自定义样式成功后，执行自定义渲染商品详情页
+      if (res.code === 200) {
+        pcComboDetailsRender();
+        // if (res?.data?.product_attrs_style === 3) {
+        //   checkSell("tile");
+        // } else {
+        //   checkSell();
+        // }
+      }
+    });
+}
+// pc端渲染combo详情
+function pcComboDetailsRender() {
+  // 说明是属性组合式的下拉框
+  if (custormStyleConfig.product_attrs_style === 1) {
+    // 下拉属性组合方式渲染
+    selectPropertyCombination();
+    // 布局横向排列
+    if (custormStyleConfig.product_card_style === 2) {
+      $(".fx-detailsBox").addClass("fx-detailsBox-transverse");
+      $(".fx-details-bigBox").addClass("fx-details-bigBox-transverse");
+      $(".fx-leftImg").addClass("fx-leftImg-transverse");
+      $(".fx-rightBox").addClass("fx-rightBox-transverse");
+      $(".fx-title").addClass("fx-title-transverse");
+      $(".fx-select").addClass("fx-select-transverse");
+      $(".fx-list").addClass("fx-list-transverse");
+    } else {
+      $(".fx-details-bigBox").css({ display: "block" });
+    }
+    // 判断是否隐藏商品属性
+    judgeGoodsIsHidden();
+    // 判断是否能出售
+    checkSell();
+    return;
+  }
+  // 说明是平铺方式
+  if (custormStyleConfig.product_attrs_style === 3) {
+    // 平铺方式渲染 商品详情
+    tileRender();
+    $(".fx-details-bigBox").css({ display: "block" });
+    // 判断是否隐藏商品属性
+    judgeGoodsIsHidden();
+    // 判断是否能出售
+    checkSell("tile");
+    return;
+  }
+  // 说明是多个下拉框的方式
+  if (custormStyleConfig.product_attrs_style === 2) {
+    let doms = `<div class="fx-details-bigBox">`;
+    if (Array.isArray(arr) && arr.length > 0) {
+      arr.forEach((item, index) => {
+        let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
+        doms += `
+          <div class="fx-detailsBox" data-index="${index}">
+          <div class="fx-leftImg">
+              <img class="fx-leftImgSelf${index}" src="${img}" alt="" >
+          </div>
+          <div class="fx-rightBox">
+              <div class="fx-title" title="${item.title}">
+                  ${item.title}
+              </div>
+              <div class="selectBoxs">
+               ${item.variant_attrs.reduce((prev, currents, indexs) => {
+                 return (
+                   prev +
+                   `<div class="selectBox${index} selectItemBox" data-value="${
+                     currents.name
+                   }:${currents.value[0]}">
+                   <div class="fx-select" id="fx-select-${index}${indexs}"> 
+                  ${currents.name}:${currents.value[0]}               
+                   </div>
+                   <div class="fx-list" id="${index}${indexs}">
+                      ${currents.value.reduce((prev, current) => {
+                        return (
+                          prev +
+                          `
+                        <div class="fx-listItem" title="${currents.name}:${current}" key="${index}${indexs}">${currents.name}:${current}</div>
+                        `
+                        );
+                      }, "")}
+                    </div>
+                </div>
+                `
+                 );
+               }, "")}
+              </div>
+          </div>
+      </div>
+          `;
+      });
+    }
+    doms + "</div>";
+    // 渲染详情展示页面
+    $(".product_single_price").after(doms);
+    // 布局是否横向排列
+    if (custormStyleConfig.product_card_style === 2) {
+      $(".fx-detailsBox").addClass("fx-detailsBox-transverse");
+      $(".fx-details-bigBox").addClass("fx-details-bigBox-flex");
+      $(".fx-leftImg").addClass("fx-leftImg-transverse");
+      $(".fx-rightBox").addClass("fx-rightBox-transverse");
+      $(".fx-title").addClass("fx-title-transverse");
+    } else {
+      $(".fx-details-bigBox").css({ display: "block" });
+    }
+    $(".product_single .input_attrs_box").remove();
+    // 判断是否隐藏商品属性
+    judgeGoodsIsHidden();
+    // 自定义下拉框逻辑
+    custormSelect();
+  }
+}
+// 下拉属性组合方式渲染
+function selectPropertyCombination() {
+  let doms = `<div class="fx-details-bigBox">`;
+  // 处理属性组合下拉框渲染数据
+  propertyCombination(arr);
+  if (Array.isArray(arr) && arr.length > 0) {
+    arr.forEach((item, index) => {
+      let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
+      if (item.attrs_string.length > 0) {
+        doms += `
+        <div class="fx-detailsBox" data-index=${index}>
+          <div class="fx-leftImg">
+            <img class="fx-leftImgSelf${index}" src="${img}" alt="" data-index=${index}>
+          </div>
+          <div class="fx-rightBox">
+            <div class="fx-title" title=${item.title}>
+                ${item.title}
+            </div>
+            <div class="selectBoxs">
+             <div class="selectBox${index} selectItemBox" data-value="${
+          item.attrs_string[0]
+        }">
+              <div class="fx-select" id="fx-select-${index}"> 
+               ${item.attrs_string[0]}              
+              </div>
+              <div class="fx-list" id=${index}>
+               ${item.attrs_string.reduce((prev, currents, indexs) => {
+                 return (
+                   prev +
+                   `
+                     <div class="fx-listItem" title="${currents}" key=${index}${indexs} >${currents}</div>
+                     `
+                 );
+               }, "")}
+               </div>
+            </div>
+            </div>
+        </div>
+    </div>
+        `;
+      } else {
+        doms += `
+            <div class="fx-detailsBox" data-index=${index}>
+              <div class="fx-leftImg">
+                <img class="fx-leftImgSelf${index}" src="${img}" alt=""  data-index=${index}>
+              </div>
+              <div class="fx-rightBox">
+                <div class="fx-title" title=${item.title}>
+                    ${item.title}
+                </div>
+                <div class="selectBoxs">
+                 <div class="selectBox${index} selectItemBox" data-value="">
+                 </div>
+                </div>
+            </div>
+        </div>
+            `;
+      }
+    });
+  }
+  doms + "</div>";
+  // 根据主题 挂载在不同的dom上
+  if (theme === "default") {
+    // Basic 主题
+    $(".deploy__price").after(doms);
+    $(".deploy__line").remove();
+    // $(".addcart").css({ visibility: "hidden", positon: "absolute" });
+  }
+  // 渲染详情展示页面
+  $(".product_single_price").after(doms);
+  $(".product_single .input_attrs_box").remove();
+  // 自定义下拉框逻辑
+  custormSelect();
+}
+// 自定义下拉框逻辑
+function custormSelect() {
+  // 自定义下拉框逻辑
+  $(".fx-select").on("click", (event) => {
+    $("body").append(`<div class="fx-mask">mask</div>`);
+    $(".fx-list").css({ visibility: "hidden" });
+    // 获取当前节点的id
+    let currentTargetId = event.target.id;
+    let value = $(`#${currentTargetId}`).html().trim();
+    $(".fx-listItem").removeClass("fx-listItem-checked");
+    $(".fx-listItem").each(function () {
+      if ($(this).attr("title") == value) {
+        //指定title的值
+        $(this).addClass("fx-listItem-checked");
+      }
+    });
+    event.stopPropagation(); // 阻止事件冒泡
+    if ($(`#${currentTargetId}`).next().css("visibility") === "hidden") {
+      $(`#${currentTargetId}`).next().css({ visibility: "visible" });
+    } else {
+      $(`#${currentTargetId}`).next().css({ visibility: "hidden" });
     }
   });
+  // 监听dom逻辑
+  $(document).on("click", () => {
+    $(".fx-list").css({ visibility: "hidden" });
+    $(".fx-mask").remove();
+  });
+  // 点击下拉列表的逻辑
+  $(".fx-list").on("click", (event) => {
+    $(".fx-mask").remove();
+    // 获取当前点击的id
+    let id = event.currentTarget.id;
+    let value = event.target.innerHTML || "";
+    $(`#${id}`).prev().html(value);
+    $(`#${id}`).parent().attr("data-value", value);
+    checkSell();
+  });
+  // 自定义下拉框逻辑 end
+}
+// 判断是否还能在售卖
+function checkSell(type) {
+  // type 为 tile 说明为平铺的方式
+  // 购物车参数对象
+  let params = [];
+  for (let i = 0; i < arr.length; i++) {
+    let str = "";
+    if (type === "tile") {
+      $(".fx-tile-propertyBox" + i).each((index, dom) => {
+        let val = $(dom).attr("data-value");
+        str += val;
+      });
+    } else {
+      $(".selectBox" + i).each((index, dom) => {
+        let val = $(dom).attr("data-value");
+        str += val;
+      });
+    }
+    // 去掉空格
+    str = str.replace('"', "").split(" ").join("");
+    let obj = {};
+    // 如果没有属性
+    if (arr[i].variants.length === 0) {
+      obj = { product_id: arr[i].ID, stock: arr[i].stock };
+      params.push(obj);
+      continue;
+    }
+    let arrId = indexOf(arr[i].variants, str);
+    // 属性如果没有找到
+    if (arrId === -1) {
+      obj = { product_id: arr[i].ID, stock: 0 };
+      params.push(obj);
+      continue;
+    }
+    // 得到商品id和变种id
+    let product_id = arr[i].ID;
+    let variant_id = arr[i]["variants"][arrId].ID;
+    let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
+    let img =
+      arr[i]["variants"][arrId].image || `${ASSET_ENDPOINT}/default.png`;
+    obj = { product_id, variant_id, stock, imgLink: img };
+    // 如果不存在变种id 删除这个字段
+    if (!obj.variant_id) {
+      delete obj.variant_id;
+    }
+    params.push(obj);
+  }
+
+  // 数量默认为1
+  params.forEach((item) => {
+    item.quantity = condition_num;
+  });
+  // stockIsNull 为true说明有stock（库存） 为0的商品，不能在售卖，按钮变成sold out;
+  let stockIsNull =
+    params.filter((item) => {
+      return item.stock <= 0 || item.quantity > item.stock;
+    }).length > 0;
+  // 根据不同的变种id 展示不同的图片
+  // params.forEach((itemobj, index) => {
+  //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
+  // });
+  console.log("加入购物车数据", stockIsNull, params);
+  // 判断渲染的加入购物车按钮
+  AddCartButtonStyle(stockIsNull, params);
+}
+// 加入购物车按钮渲染判断
+function AddCartButtonStyle(stockIsNull, params) {
+  // 如果是详情页 移除原本的加入购物车按钮 新增一个新的添加购物车按钮
+  if ($(".fx-details-bigBox".length)) {
+    // vogue主题
+    if (theme === "vogue") {
+      let textValue = $(".product_single_add_button .secondary_title").html();
+      let disAbleValue = "SOLD OUT";
+      let normalValue = "ADD TO CART";
+      // 判断是否包含中文
+      if (!escape(textValue).indexOf("%u") < 0) {
+        normalValue = "加入购物车";
+        disAbleValue = "库存为空";
+      }
+      // 按钮文字判断
+      // button_style为2说明 是自定义按钮文字和颜色
+      let backgroundColor = "";
+      let textColor = "";
+      if (custormStyleConfig.button_style === 2) {
+        //  ------------------加入购物车按钮-----------------
+        // 按钮文字
+        normalValue =
+          custormStyleConfig.button_style_details.addCartButtonConfig
+            .buttonText;
+        // 背景颜色
+        backgroundColor =
+          custormStyleConfig.button_style_details.addCartButtonConfig
+            .backgroundColor;
+        // 文字颜色
+        textColor =
+          custormStyleConfig.button_style_details.addCartButtonConfig.textColor;
+        // ------------------------soldout 按钮--------------
+        disAbleValue =
+          custormStyleConfig.button_style_details.soldButtonConfig.buttonText;
+      }
+
+      // 新增一个新的购物车按钮
+      let addButton = `
+      <div class="product_single_add_button transition-main fx-add-button">
+        <span class="secondary_title fx-addCartButton-text">${normalValue}</span>
+      </div>
+      `;
+      // 售卖完的按钮
+      let disAbleButton = `
+      <div class="product_single_add_button product_single_add_button_disabled
+      soldout">
+        <span class="secondary_title">${disAbleValue}</span>
+      </div>
+      `;
+      $(".product_single_add_button").remove();
+      if ($(".product_single_add_button_disabledsoldout").length) {
+        disAbleValue = textValue;
+        $(".fx-details-bigBox").append(disAbleButton);
+      } else {
+        // stockIsNull 为false说明有库存，true说明没有库存
+        if (stockIsNull) {
+          $(".fx-details-bigBox").after(disAbleButton);
+        } else {
+          $(".fx-details-bigBox").after(addButton);
+          if (backgroundColor && textColor) {
+            // 背景颜色和文字颜色
+            $(".fx-add-button").css(
+              "cssText",
+              `border:1px solid ${backgroundColor} !important `
+            );
+            let style = document.createElement("style");
+            style.innerHTML = `#app .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
+            document.getElementsByTagName("head").item(0).appendChild(style);
+            $(".fx-addCartButton-text").css(
+              "cssText",
+              `color:${textColor} !important `
+            );
+          }
+          // 重写点击逻辑
+          $(".product_single_add_button").on("click", () => {
+            buttonOnchilk(params);
+          });
+        }
+      }
+      // 移除原本整个区域
+      $(".product_add_cart").remove();
+    }
+    // basic 主题
+    if (theme === "default") {
+      let disAbleValue = "SOLD OUT";
+      let normalValue = "ADD TO CART";
+      let backgroundColor = "";
+      let textColor = "";
+      if (custormStyleConfig.button_style === 2) {
+        //  ------------------加入购物车按钮-----------------
+        // 按钮文字
+        normalValue =
+          custormStyleConfig.button_style_details.addCartButtonConfig
+            .buttonText;
+        // 背景颜色
+        backgroundColor =
+          custormStyleConfig.button_style_details.addCartButtonConfig
+            .backgroundColor;
+        // 文字颜色
+        textColor =
+          custormStyleConfig.button_style_details.addCartButtonConfig.textColor;
+        // ------------------------soldout 按钮--------------
+        disAbleValue =
+          custormStyleConfig.button_style_details.soldButtonConfig.buttonText;
+      }
+      // 新增一个新的购物车按钮
+      let addButton = `
+        <div class="basic—addToCartButton el-button gocart secondary_title el-button--button minor_button">
+          <span class="fx-addCartButton-text">${normalValue}</span>
+        </div>
+          `;
+      // 售卖完的按钮
+      let disAbleButton = `
+        <div class="product_single_add_button product_single_add_button_disabled soldout">
+          <span>${disAbleValue}</span>
+        </div>
+            `;
+      if (stockIsNull) {
+        $(".fx-details-bigBox").after(disAbleButton);
+      } else {
+        $(".fx-details-bigBox").after(addButton);
+        // 重写点击逻辑
+        $(".basic—addToCartButton").on("click", () => {
+          buttonOnchilk(params);
+        });
+      }
+    }
+  }
+}
 // 购物车优惠卷逻辑判断 购物车是单独页面的情况
 function cartAndCouponJudge() {
   // 插入商品详情css
@@ -5700,7 +6194,7 @@ function carPopUptAndCouponJudge() {
   }
   // 新的按钮
   let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart  secondary_title transition-main">${checkoutButtonTest}<button>`;
-  
+
   if (!document.querySelector(".fx-checkout-inlineCart")) {
     // 插入新的按钮
     $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
@@ -5852,30 +6346,6 @@ function monitorCart() {
 }
 
 // ----------------------------------商品详情页逻辑------------------------------
-// 获取样式配置
-function getStyleConfig() {
-  fetch(`${API_ENDPOINT}/api/getStyleSetting?shop=${shop}`, {
-    method: "GET",
-  })
-    .then((response) => response.json())
-    .then((res) => {
-      if (res.data.button_style === 2) {
-        res.data.button_style_details = JSON.parse(
-          res.data.button_style_details
-        );
-      }
-      custormStyleConfig = res.data;
-      // 获取自定义样式成功后，执行自定义渲染商品详情页
-      if (res.code === 200) {
-        pcComboDetailsRender();
-        if (res?.data?.product_attrs_style === 3) {
-          checkSell("tile");
-        } else {
-          checkSell();
-        }
-      }
-    });
-}
 // 获取初始时样式配置
 function getCartStyleConfig(type) {
   fetch(`${API_ENDPOINT}/api/getStyleSetting?shop=${shop}`, {
@@ -5895,51 +6365,16 @@ function getCartStyleConfig(type) {
           carPopUptAndCouponJudge();
         } else {
           // 购物车时单独页面的情况
-          var timer = window.setInterval(()=>{
-            if(!document.querySelector(".fx-checkout-old")){
+          var timer = window.setInterval(() => {
+            if (!document.querySelector(".fx-checkout-old")) {
               cartAndCouponJudge();
-            }else{
+            } else {
               window.clearInterval(timer);
             }
-          },600)
+          }, 600);
           // cartAndCouponJudge();
         }
       }
-    });
-}
-// 获取数据以及插入html
-function getDataAndInsertHtml() {
-  // 请求combo详情接口
-  fetch(
-    `${API_ENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.href}`
-  )
-    .then((response) => response.json())
-    .then((res) => {
-      if(res.data && res.data.comboInfo){
-        // 判断是否隐藏商品详情
-        hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
-      }
-      // 返回数据处理 删除多余字段
-      arr = returnedDataProcessing(res.data.data);
-      // console.log("结果处理的数据",arr)
-      comboId = res.data.comboInfo.id;
-      condition_num = res.data.comboInfo.condition_num; // 最低件数
-      // 如果不是combo组合商品 直接return
-      if (!res.data.is_combo) {
-        // $(".gallery_left").removeClass("fx-gallery_left");
-        // 判断购物车方式 是不是弹出框或者抽屉的方式
-        if (document.querySelector(".inlineCart")) {
-          document
-            .querySelector(".product_single_add .product_single_add_button")
-            .addEventListener("click", () => {
-              carPopUptAndCouponJudge();
-            });
-        }
-        return;
-      }
-      // $(".gallery_left").addClass("fx-gallery_left");
-      // 获取自定义样式配置
-      getStyleConfig();
     });
 }
 // 属性组合数据处理（bule/s）
@@ -5990,100 +6425,6 @@ function propertyCombination(array) {
   });
 
   arr = arr3;
-}
-// pc端渲染combo详情
-function pcComboDetailsRender() {
-  // 说明是属性组合式的下拉框
-  if (custormStyleConfig.product_attrs_style === 1) {
-    // 下拉属性组合方式渲染
-    selectPropertyCombination();
-    // 布局横向排列
-    if (custormStyleConfig.product_card_style === 2) {
-      $(".fx-detailsBox").addClass("fx-detailsBox-transverse");
-      $(".fx-details-bigBox").addClass("fx-details-bigBox-transverse");
-      $(".fx-leftImg").addClass("fx-leftImg-transverse");
-      $(".fx-rightBox").addClass("fx-rightBox-transverse");
-      $(".fx-title").addClass("fx-title-transverse");
-      $(".fx-select").addClass("fx-select-transverse");
-      $(".fx-list").addClass("fx-list-transverse");
-    } else {
-      $(".fx-details-bigBox").css({ display: "block" });
-    }
-    // 判断是否隐藏商品属性
-    judgeGoodsIsHidden();
-    return;
-  }
-  // 说明是平铺方式
-  if (custormStyleConfig.product_attrs_style === 3) {
-    // 平铺方式渲染 商品详情
-    tileRender();
-    $(".fx-details-bigBox").css({ display: "block" });
-    // 判断是否隐藏商品属性
-    judgeGoodsIsHidden();
-    return;
-  }
-  // 说明是多个下拉框的方式
-  let doms = `<div class="fx-details-bigBox">`;
-  if (Array.isArray(arr) && arr.length > 0) {
-    arr.forEach((item, index) => {
-      let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
-      doms += `
-          <div class="fx-detailsBox" data-index="${index}">
-          <div class="fx-leftImg">
-              <img class="fx-leftImgSelf${index}" src="${img}" alt="" >
-          </div>
-          <div class="fx-rightBox">
-              <div class="fx-title" title="${item.title}">
-                  ${item.title}
-              </div>
-              <div class="selectBoxs">
-               ${item.variant_attrs.reduce((prev, currents, indexs) => {
-                 return (
-                   prev +
-                   `<div class="selectBox${index} selectItemBox" data-value="${
-                     currents.name
-                   }:${currents.value[0]}">
-                   <div class="fx-select" id="fx-select-${index}${indexs}"> 
-                  ${currents.name}:${currents.value[0]}               
-                   </div>
-                   <div class="fx-list" id="${index}${indexs}">
-                      ${currents.value.reduce((prev, current) => {
-                        return (
-                          prev +
-                          `
-                        <div class="fx-listItem" title="${currents.name}:${current}" key="${index}${indexs}">${currents.name}:${current}</div>
-                        `
-                        );
-                      }, "")}
-                    </div>
-                </div>
-                `
-                 );
-               }, "")}
-              </div>
-          </div>
-      </div>
-          `;
-    });
-  }
-  doms + "</div>";
-  // 渲染详情展示页面
-  $(".product_single_price").after(doms);
-  // 布局是否横向排列
-  if (custormStyleConfig.product_card_style === 2) {
-    $(".fx-detailsBox").addClass("fx-detailsBox-transverse");
-    $(".fx-details-bigBox").addClass("fx-details-bigBox-flex");
-    $(".fx-leftImg").addClass("fx-leftImg-transverse");
-    $(".fx-rightBox").addClass("fx-rightBox-transverse");
-    $(".fx-title").addClass("fx-title-transverse");
-  } else {
-    $(".fx-details-bigBox").css({ display: "block" });
-  }
-  $(".product_single .input_attrs_box").remove();
-  // 判断是否隐藏商品属性
-  judgeGoodsIsHidden();
-  // 自定义下拉框逻辑
-  custormSelect();
 }
 // -------------------------------------pc端平铺方式------------------------
 function tileRender() {
@@ -6169,53 +6510,13 @@ function tileCustomSelection() {
   });
 }
 // -------------------------------------pc端平铺方式end------------------------
-// 自定义下拉框逻辑
-function custormSelect() {
-  // 自定义下拉框逻辑
-  $(".fx-select").on("click", (event) => {
-    $("body").append(`<div class="fx-mask">mask</div>`);
-    $(".fx-list").css({ visibility: "hidden" });
-    // 获取当前节点的id
-    let currentTargetId = event.target.id;
-    let value = $(`#${currentTargetId}`).html().trim();
-    $(".fx-listItem").removeClass("fx-listItem-checked");
-    $(".fx-listItem").each(function () {
-      if ($(this).attr("title") == value) {
-        //指定title的值
-        $(this).addClass("fx-listItem-checked");
-      }
-    });
-    event.stopPropagation(); // 阻止事件冒泡
-    if ($(`#${currentTargetId}`).next().css("visibility") === "hidden") {
-      $(`#${currentTargetId}`).next().css({ visibility: "visible" });
-    } else {
-      $(`#${currentTargetId}`).next().css({ visibility: "hidden" });
-    }
-  });
-  // 监听dom逻辑
-  $(document).on("click", () => {
-    $(".fx-list").css({ visibility: "hidden" });
-    $(".fx-mask").remove();
-  });
-  // 点击下拉列表的逻辑
-  $(".fx-list").on("click", (event) => {
-    $(".fx-mask").remove();
-    // 获取当前点击的id
-    let id = event.currentTarget.id;
-    let value = event.target.innerHTML || "";
-    $(`#${id}`).prev().html(value);
-    $(`#${id}`).parent().attr("data-value", value);
-    checkSell();
-  });
-  // 自定义下拉框逻辑 end
-}
 // 自定义购物车按钮点击函数
 function buttonOnchilk(params) {
   params.forEach((item) => {
     item.quantity = condition_num; // 数量至少为最低的件数
-    if (item.stock) {
-      delete item.stock;
-    }
+    // if (item.stock) {
+    //   delete item.stock;
+    // }
     if (item.imgLink) {
       delete item.imgLink;
     }
@@ -6241,267 +6542,177 @@ function jumpTocart(params) {
     const shop = window.location.host || "'powder70.hotishop.com'";
     // 创建优惠卷参数
     let createCouponObj = { id: comboId, cartInfo, shop };
-    // 创建优惠卷promise
-    const createCouponPromise = new Promise((resolve, reject) => {
-      fetch(`${API_ENDPOINT}/api/createCoupon`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(createCouponObj),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          resolve(data);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
-    // 添加到购物车promise
-    const addToCartpromise = new Promise((resolve, reject) => {
-      // ajax改造
-      fetch(`${origin}/api/store/batchCart`, {
-        method: "POST", // or 'PUT'
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(params),
-      })
-        .then((response) => response.json())
-        .then((res) => {
-          resolve(res);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
-    // 请求购物车详情接口 promise
-    const getAddToCartDetailsPromise = new Promise((resolve, reject) => {
-      // ajax改造
-      fetch(`${origin}/api/store/cart`, {
-        method: "GET", // or 'PUT'
-      })
-        .then((response) => response.json())
-        .then((res) => {
-          resolve(res);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
-    // 前三个接口执行结果
-    Promise.all([
-      addToCartpromise,
-      createCouponPromise,
-      getAddToCartDetailsPromise,
-    ])
-      .then((result) => {
-        if (result[0].code === -1) {
-          let errorMsg = result[0].message;
-          let message = `<div class="fx-error-message"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
+    // 请求购物车接口
+    fetch(`${origin}/api/store/cart`, {
+      method: "GET", // or 'PUT'
+    })
+      .then((response) => response.json())
+      .then((res) => {
+        console.log("购物车res22", res);
+        let flag = true; // 是否允许加入购物车
+        let num = 0; // 购物车里面商品的数量
+        // 判断购物车里面的商品库存加上加入的库存 是否大于 本身的库存
+        let cartData = Object.values(res.cart);
+        console.log("params", params.product);
+        console.log("cartData", cartData);
+        if (cartData.length > 0) {
+          params.product.forEach((item2) => {
+            cartData.forEach((item3) => {
+              if (item3.product_id === item2.product_id) {
+                console.log("item3.product_id", item3.product_id);
+                // 存在变种id
+                if (item2.variant_id) {
+                  if (item2.variant_id === item3.variant.ID) {
+                    let stock = item2.stock;
+                    let quantity = item2.quantity + item3.quantity;
+                    console.log("quantity", quantity);
+                    if (quantity > stock) {
+                      flag = false;
+                      num = stock;
+                    }
+                  }
+                }
+                // 不存在变种id
+                else {
+                  console.log("进入else了");
+                  let stock = item2.stock;
+                  let quantity = item2.quantity + item3.quantity;
+                  if (quantity > stock) {
+                    flag = false;
+                    num = stock;
+                  }
+                }
+              }
+            });
+          });
+        }
+        if (!flag) {
+          let errorMsg = `You cannot add that amount to the cart — we have ${num} in stock and you already have ${num} in your cart`;
+          let message = `<div class="fx-error-message fx-error-message2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
           $("body").append(message);
           $(".fx-add-button").removeClass("fx-add-button-loading");
           setTimeout(() => {
             $(".fx-error-message").remove();
           }, 3000);
           return;
-        }
-        if (Array.isArray(result) && result.length === 3) {
-          let hash = result[0].hash; // 购物车hash
-          let code = result[1].data.code; // 创建优惠卷的code码
-          let deleteCode = result[2].coupons["cart discount"]
-            ? result[2].coupons["cart discount"].code
-            : ""; // 删除优惠卷的code码
-          // 删除优惠卷
-          if (deleteCode) {
-            // 调用删除优惠卷接口
-            fetch(
-              `${origin}/api/store/cart/coupons/${deleteCode}?cart_hash=${hash}`,
-              {
-                method: "DELETE", // or 'PUT'
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
-            )
+        } else {
+          // 创建优惠卷promise
+          const createCouponPromise = new Promise((resolve, reject) => {
+            fetch(`${API_ENDPOINT}/api/createCoupon`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(createCouponObj),
+            })
               .then((response) => response.json())
               .then((data) => {
-                if (hash && code) {
-                  // 使用优惠卷
-                  useCoupon();
-                } else if (hash) {
-                  window.location.href = url;
-                }
+                resolve(data);
+              })
+              .catch((error) => {
+                reject(error);
               });
-          } else {
-            if (hash && code) {
-              // 使用优惠卷
-              useCoupon();
-            } else if (hash) {
-              window.location.href = url;
-            }
-          }
-          // 移除loading状态
-          // $(".fx-add-button").removeClass("fx-add-button-loading");
-          // $(".fx-add-button").addClass("transition-main");
-          // 使用优惠卷
-          function useCoupon() {
-            // 调用使用优惠卷接口
-            fetch(`${origin}/api/store/cart/coupons?cart_hash=${hash}`, {
+          });
+          // 商品添加到购物车promise
+          const addToCartpromise = new Promise((resolve, reject) => {
+            // ajax改造
+            fetch(`${origin}/api/store/batchCart`, {
               method: "POST", // or 'PUT'
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ code }),
+              body: JSON.stringify(params),
             })
               .then((response) => response.json())
-              .then((data) => {
-                // 添加购物车成功过后，移除监听以及跳转
-                $(document).off();
-                $(".fx-list").off();
-                $(".product_qty_box .add").off();
-                $(".product_qty_box .subtract").off();
-                let url = origin + "/cart";
-                window.location.href = url;
+              .then((res) => {
+                resolve(res);
+              })
+              .catch((error) => {
+                reject(error);
               });
-          }
+          });
+          // 二个接口执行结果
+          Promise.all([addToCartpromise, createCouponPromise])
+            .then((result) => {
+              if (result[0].code === -1) {
+                let errorMsg = result[0].message;
+                let message = `<div class="fx-error-message"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
+                $("body").append(message);
+                $(".fx-add-button").removeClass("fx-add-button-loading");
+                setTimeout(() => {
+                  $(".fx-error-message").remove();
+                }, 3000);
+                return;
+              }
+              if (Array.isArray(result) && result.length === 2) {
+                let hash = result[0].hash; // 购物车hash
+                let code = result[1].data.code; // 创建优惠卷的code码
+                let deleteCode = res.coupons["cart discount"]
+                  ? res.coupons["cart discount"].code
+                  : ""; // 删除优惠卷的code码
+                // 删除优惠卷
+                if (deleteCode) {
+                  // 调用删除优惠卷接口
+                  fetch(
+                    `${origin}/api/store/cart/coupons/${deleteCode}?cart_hash=${hash}`,
+                    {
+                      method: "DELETE", // or 'PUT'
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    }
+                  )
+                    .then((response) => response.json())
+                    .then((data) => {
+                      if (hash && code) {
+                        // 使用优惠卷
+                        useCoupon();
+                      } else if (hash) {
+                        window.location.href = url;
+                      }
+                    });
+                } else {
+                  if (hash && code) {
+                    // 使用优惠卷
+                    useCoupon();
+                  } else if (hash) {
+                    window.location.href = url;
+                  }
+                }
+                // 使用优惠卷
+                function useCoupon() {
+                  // 调用使用优惠卷接口
+                  fetch(`${origin}/api/store/cart/coupons?cart_hash=${hash}`, {
+                    method: "POST", // or 'PUT'
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ code }),
+                  })
+                    .then((response) => response.json())
+                    .then((data) => {
+                      // 添加购物车成功过后，移除监听以及跳转
+                      $(document).off();
+                      $(".fx-list").off();
+                      $(".product_qty_box .add").off();
+                      $(".product_qty_box .subtract").off();
+                      let url = origin + "/cart";
+                      window.location.href = url;
+                    });
+                }
+              }
+            })
+            .catch((error) => {
+              console.error(error);
+            });
         }
+        return;
       })
-      .catch((error) => {});
-  }
-}
-// 下拉属性组合方式渲染
-function selectPropertyCombination() {
-  let doms = `<div class="fx-details-bigBox">`;
-  // 处理属性组合下拉框渲染数据
-  propertyCombination(arr);
-  if (Array.isArray(arr) && arr.length > 0) {
-    arr.forEach((item, index) => {
-      let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
-      if (item.attrs_string.length > 0) {
-        doms += `
-        <div class="fx-detailsBox" data-index=${index}>
-          <div class="fx-leftImg">
-            <img class="fx-leftImgSelf${index}" src="${img}" alt="" data-index=${index}>
-          </div>
-          <div class="fx-rightBox">
-            <div class="fx-title" title=${item.title}>
-                ${item.title}
-            </div>
-            <div class="selectBoxs">
-             <div class="selectBox${index} selectItemBox" data-value="${
-          item.attrs_string[0]
-        }">
-              <div class="fx-select" id="fx-select-${index}"> 
-               ${item.attrs_string[0]}              
-              </div>
-              <div class="fx-list" id=${index}>
-               ${item.attrs_string.reduce((prev, currents, indexs) => {
-                 return (
-                   prev +
-                   `
-                     <div class="fx-listItem" title="${currents}" key=${index}${indexs} >${currents}</div>
-                     `
-                 );
-               }, "")}
-               </div>
-            </div>
-            </div>
-        </div>
-    </div>
-        `;
-      } else {
-        doms += `
-            <div class="fx-detailsBox" data-index=${index}>
-              <div class="fx-leftImg">
-                <img class="fx-leftImgSelf${index}" src="${img}" alt=""  data-index=${index}>
-              </div>
-              <div class="fx-rightBox">
-                <div class="fx-title" title=${item.title}>
-                    ${item.title}
-                </div>
-                <div class="selectBoxs">
-                 <div class="selectBox${index} selectItemBox" data-value="">
-                 </div>
-                </div>
-            </div>
-        </div>
-            `;
-      }
-    });
-  }
-  doms + "</div>";
-  // 渲染详情展示页面
-  $(".product_single_price").after(doms);
-  $(".product_single .input_attrs_box").remove();
-  // 自定义下拉框逻辑
-  custormSelect();
-}
-// 判断是否还能在售卖
-function checkSell(type) {
-  // type 为 tile 说明为平铺的方式
-  // 购物车参数对象
-  let params = [];
-  for (let i = 0; i < arr.length; i++) {
-    let str = "";
-    if (type === "tile") {
-      $(".fx-tile-propertyBox" + i).each((index, dom) => {
-        let val = $(dom).attr("data-value");
-        str += val;
+      .catch((error) => {
+        console.error(error);
+        return;
       });
-    } else {
-      $(".selectBox" + i).each((index, dom) => {
-        let val = $(dom).attr("data-value");
-        str += val;
-      });
-    }
-    // 去掉空格
-    str = str.replace('"', "").split(" ").join("");
-    let obj = {};
-    // 如果没有属性
-    if (arr[i].variants.length === 0) {
-      obj = { product_id: arr[i].ID, stock: arr[i].stock };
-      params.push(obj);
-      continue;
-    }
-    let arrId = indexOf(arr[i].variants, str);
-    // 属性如果没有找到
-    if (arrId === -1) {
-      obj = { product_id: arr[i].ID, stock: 0 };
-      params.push(obj);
-      continue;
-    }
-    // 得到商品id和变种id
-    let product_id = arr[i].ID;
-    let variant_id = arr[i]["variants"][arrId].ID;
-    let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
-    let img =
-      arr[i]["variants"][arrId].image || `${ASSET_ENDPOINT}/default.png`;
-    obj = { product_id, variant_id, stock, imgLink: img };
-    // 如果不存在变种id 删除这个字段
-    if (!obj.variant_id) {
-      delete obj.variant_id;
-    }
-    params.push(obj);
   }
-
-  // 数量默认为1
-  params.forEach((item) => {
-    item.quantity = condition_num;
-  });
-  // stockIsNull 为true说明有stock（库存） 为0的商品，不能在售卖，按钮变成sold out;
-  let stockIsNull =
-    params.filter((item) => {
-      return item.stock <= 0 || item.quantity > item.stock;
-    }).length > 0;
-  // 根据不同的变种id 展示不同的图片
-  // params.forEach((itemobj, index) => {
-  //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
-  // });
-  // console.log("加入购物车数据",stockIsNull,params)
-  // 判断渲染的加入购物车按钮
-  AddCartButtonStyle(stockIsNull, params);
 }
 // 找到变种id在数组的下标
 function indexOf(arr, str) {
@@ -6515,85 +6726,6 @@ function indexOf(arr, str) {
     if (attrs_string2 === str) return i;
   }
   return -1;
-}
-// 加入购物车按钮渲染判断
-function AddCartButtonStyle(stockIsNull, params) {
-  // 如果是详情页 移除原本的加入购物车按钮 新增一个新的添加购物车按钮
-  if ($(".fx-details-bigBox".length)) {
-    let textValue = $(".product_single_add_button .secondary_title").html();
-    let disAbleValue = "SOLD OUT";
-    let normalValue = "ADD TO CART";
-    // 判断是否包含中文
-    if (!escape(textValue).indexOf("%u") < 0) {
-      normalValue = "加入购物车";
-      disAbleValue = "库存为空";
-    }
-    // 按钮文字判断
-    // button_style为2说明 是自定义按钮文字和颜色
-    let backgroundColor = "";
-    let textColor = "";
-    if (custormStyleConfig.button_style === 2) {
-      //  ------------------加入购物车按钮-----------------
-      // 按钮文字
-      normalValue =
-        custormStyleConfig.button_style_details.addCartButtonConfig.buttonText;
-      // 背景颜色
-      backgroundColor =
-        custormStyleConfig.button_style_details.addCartButtonConfig
-          .backgroundColor;
-      // 文字颜色
-      textColor =
-        custormStyleConfig.button_style_details.addCartButtonConfig.textColor;
-      // ------------------------soldout 按钮--------------
-      disAbleValue =
-        custormStyleConfig.button_style_details.soldButtonConfig.buttonText;
-    }
-    // 新增一个新的购物车按钮
-    let addButton = `
-    <div class="product_single_add_button transition-main fx-add-button">
-      <span class="secondary_title fx-addCartButton-text">${normalValue}</span>
-    </div>
-    `;
-    // 售卖完的按钮
-    let disAbleButton = `
-    <div class="product_single_add_button product_single_add_button_disabled
-    soldout">
-      <span class="secondary_title">${disAbleValue}</span>
-    </div>
-    `;
-    $(".product_single_add_button").remove();
-    if ($(".product_single_add_button_disabledsoldout").length) {
-      disAbleValue = textValue;
-      $(".fx-details-bigBox").append(disAbleButton);
-    } else {
-      // stockIsNull 为false说明有库存，true说明没有库存
-      if (stockIsNull) {
-        $(".fx-details-bigBox").after(disAbleButton);
-      } else {
-        $(".fx-details-bigBox").after(addButton);
-        if (backgroundColor && textColor) {
-          // 背景颜色和文字颜色
-          $(".fx-add-button").css(
-            "cssText",
-            `border:1px solid ${backgroundColor} !important `
-          );
-          let style = document.createElement("style");
-          style.innerHTML = `#app .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
-          document.getElementsByTagName("head").item(0).appendChild(style);
-          $(".fx-addCartButton-text").css(
-            "cssText",
-            `color:${textColor} !important `
-          );
-        }
-        // 重写点击逻辑
-        $(".product_single_add_button").on("click", () => {
-          buttonOnchilk(params);
-        });
-      }
-    }
-    // 移除原本整个区域
-    $(".product_add_cart").remove();
-  }
 }
 // combo详情数据，返回数据处理，删除无用字段，排序
 function returnedDataProcessing(arrData) {
@@ -6671,16 +6803,16 @@ function returnedDataProcessing(arrData) {
   // 如果商品隐藏，最低价格sold out 筛选有库存的商品价格最低的在最前面
   let newArrData4 = JSON.parse(JSON.stringify(newArrData3));
   if (hideGoods) {
-      // 把没有选中的变种id筛选掉
-  newArrData4.forEach((item12)=>{
-    if (item12.variants.length > 0) {
-      let newVariants = item12.variants.filter((item13)=>{
-        return item12.arrtsArr.includes(item13.attrs[0].value)
-      })
-      item12.variants = newVariants
-    }
-  })
-  newArrData4.forEach((item9, index9) => {
+    // 把没有选中的变种id筛选掉
+    newArrData4.forEach((item12) => {
+      if (item12.variants.length > 0) {
+        let newVariants = item12.variants.filter((item13) => {
+          return item12.arrtsArr.includes(item13.attrs[0].value);
+        });
+        item12.variants = newVariants;
+      }
+    });
+    newArrData4.forEach((item9, index9) => {
       if (item9.variants.length > 0) {
         let obj =
           item9.variants.find((item10) => {
@@ -6696,7 +6828,6 @@ function returnedDataProcessing(arrData) {
         }
       }
     });
-
   }
   // newArrData4.forEach((item11, index11) => {
   //   // 库存为0的放在最后
@@ -6707,7 +6838,6 @@ function returnedDataProcessing(arrData) {
   //     }
   //   });
   // });
-
 
   // console.log("newArrData4",newArrData4)
   return newArrData4;
@@ -6766,8 +6896,8 @@ function appendCss() {
   let link1 = document.createElement("link");
   link1.setAttribute("rel", "stylesheet");
   link1.setAttribute("type", "text/css");
-  link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
-  // link1.setAttribute("href", "https://test.com/index.css");
+  // link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
+  link1.setAttribute("href", "https://test.com/index.css");
   let head = document.getElementsByTagName("head")[0];
   head.appendChild(link1);
   // 插入css 结束

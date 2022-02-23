@@ -494,9 +494,14 @@
   margin: auto;
   background-color: #fdf0f0;
 }
+.fx-error-message2 {
+  width: 710px;
+  display: inline;
+}
 .fx-error-message img {
   margin-right: 8px;
 }
+
 .fx-add-button,
 .fx-checkout,
 .product_single_add_button_disabled {
