@@ -5579,7 +5579,6 @@ function rewirteLog() {
 }
 // 日志是否清除
 // rewirteLog();
-console.log("当前的主题", window.current_theme);
 // sentry 引入
 var script = document.createElement("script");
 // script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js"); // 正式上线url
@@ -6196,8 +6195,13 @@ function AddCartButtonStyle(stockIsNull, params) {
     if (theme === "default") {
       let disAbleValue = "SOLD OUT";
       let normalValue = "ADD TO CART";
-      let backgroundColor = "";
-      let textColor = "";
+      let backgroundColor = $(".deploy__button-wrapper  .gocart").css(
+        "background-color"
+      ); // 背景颜色;
+      let textColor = $(".deploy__button-wrapper  .gocart").css("color"); // 字体颜色;
+      let borderColor = $(".deploy__button-wrapper  .gocart").css(
+        "border-color"
+      ); // 边框颜色
       if (custormStyleConfig.button_style === 2) {
         //  ------------------加入购物车按钮-----------------
         // 按钮文字
@@ -6208,16 +6212,19 @@ function AddCartButtonStyle(stockIsNull, params) {
         backgroundColor =
           custormStyleConfig.button_style_details.addCartButtonConfig
             .backgroundColor;
+        // 边框颜色
+        borderColor = backgroundColor;
         // 文字颜色
         textColor =
           custormStyleConfig.button_style_details.addCartButtonConfig.textColor;
+
         // ------------------------soldout 按钮--------------
         disAbleValue =
           custormStyleConfig.button_style_details.soldButtonConfig.buttonText;
       }
       // 新增一个新的购物车按钮
       let addButton = `
-        <div class="basic—addToCartButton el-button gocart secondary_title el-button--button minor_button">
+        <div class="basic—addToCartButton">
           <span class="fx-addCartButton-text">${normalValue}</span>
         </div>
           `;
@@ -6240,13 +6247,11 @@ function AddCartButtonStyle(stockIsNull, params) {
           buttonOnchilk(params);
         });
       }
-      if (backgroundColor && textColor) {
-        // 背景颜色和文字颜色
-        $(".basic—addToCartButton").css(
-          "cssText",
-          `border:1px solid ${backgroundColor} !important;color:${textColor} !important;background-color:${backgroundColor} !important `
-        );
-      }
+      // 背景颜色和文字颜色
+      $(".basic—addToCartButton").css(
+        "cssText",
+        `border:1px solid ${borderColor};color:${textColor};background-color:${backgroundColor}`
+      );
     }
   }
 }
