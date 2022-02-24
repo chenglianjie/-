@@ -6279,7 +6279,6 @@ function jumpTocart(params) {
     $(".basic—addToCartButton").addClass("basic—addToCartButton-loading");
     $(".basic—addToCartButton").removeClass("minor_button");
     $(".basic—addToCartButton").removeClass("el-button");
-    return;
     canClickAddButton = false;
     let origin = window.location.origin || "https://powder70.hotishop.com";
     let cartInfo = params.product || [];
