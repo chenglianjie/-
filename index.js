@@ -5611,24 +5611,36 @@ let theme =
   window.current_theme || window.localStorage.getItem("current_theme"); // 当前的主题
 // 脚本开始
 $(function () {
-  console.log("jq is readay");
+  console.log("jq is readay", theme);
   let { pathname = "" } = window.location;
   // 判断购物车是弹窗和侧边弹出的情况
-  setTimeout(() => {
-    if (document.querySelector(".inlineCart")) {
-      $(".header-right .cart").on("click", () => {
-        getCartStyleConfig("popUpCart");
-      });
-    }
-  }, 2500);
-  // 商品详情页页面逻辑
+  if (theme === "vogue") {
+    setTimeout(() => {
+      if (document.querySelector(".inlineCart")) {
+        $(".header-right .cart").on("click", () => {
+          getCartStyleConfig("popUpCart");
+        });
+      }
+    }, 2500);
+  }
+  if (theme === "default") {
+    setTimeout(() => {
+      if (document.querySelector(".titlerightcart")) {
+        $(".headbox .icon-24gf-cart7").on("click", () => {
+          console.log("购物车时弹出框方式，点击了购物车图标");
+          getCartStyleConfig("popUpCart");
+        });
+      }
+    }, 2500);
+  }
+  // -----------------------------商品详情页页面逻辑----------------------------
   if (pathname.indexOf("products") !== -1) {
     // 插入商品详情css
     appendCss();
     // 获取详情数据 并插入html
     getDataAndInsertHtml();
   }
-  // 购物车是单独页面情况
+  // -----------------------------购物车是单独页面情况--------------------------
   if (pathname.indexOf("cart") !== -1) {
     getCartStyleConfig();
     return;
@@ -5649,14 +5661,11 @@ function getDataAndInsertHtml() {
         );
         return;
       }
-      if (res.data && res.data.comboInfo) {
-        // 判断是否隐藏商品详情
-        hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
-      }
-      // 返回数据处理 删除多余字段
+      // 判断是否隐藏商品详情
+      hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
+      // 返回商品数据处理，删除多余字段等
       arr = returnedDataProcessing(res.data.data);
-      // console.log("结果处理的数据",arr)
-      comboId = res.data.comboInfo.id;
+      comboId = res.data.comboInfo.id; // comboId
       condition_num = res.data.comboInfo.condition_num; // 最低件数
       // 如果不是combo组合商品 直接return
       // if (!res.data.is_combo) {
@@ -5672,7 +5681,6 @@ function getDataAndInsertHtml() {
       //   return;
       // }
       // $(".gallery_left").addClass("fx-gallery_left");
-
       // 获取自定义样式配置
       getStyleConfig();
     });
@@ -5695,48 +5703,15 @@ function getStyleConfig() {
       // 获取自定义样式成功后，执行自定义渲染商品详情页
       if (res.code === 200) {
         pcComboDetailsRender();
-        // if (res?.data?.product_attrs_style === 3) {
-        //   checkSell("tile");
-        // } else {
-        //   checkSell();
-        // }
       }
     });
 }
 // pc端渲染combo详情
 function pcComboDetailsRender() {
-  // 说明是属性组合式的下拉框
+  // 说明是属性组合式的下拉框 只有一个下拉框
   if (custormStyleConfig.product_attrs_style === 1) {
     // 下拉属性组合方式渲染
     selectPropertyCombination();
-    // 布局横向排列
-    if (custormStyleConfig.product_card_style === 2) {
-      $(".fx-detailsBox").addClass("fx-detailsBox-transverse");
-      $(".fx-details-bigBox").addClass("fx-details-bigBox-transverse");
-      $(".fx-leftImg").addClass("fx-leftImg-transverse");
-      $(".fx-rightBox").addClass("fx-rightBox-transverse");
-      $(".fx-title").addClass("fx-title-transverse");
-      $(".fx-select").addClass("fx-select-transverse");
-      $(".fx-list").addClass("fx-list-transverse");
-    } else {
-      $(".fx-details-bigBox").css({ display: "block" });
-    }
-    // 判断是否隐藏商品属性
-    judgeGoodsIsHidden();
-    // 判断是否能出售
-    checkSell();
-    return;
-  }
-  // 说明是平铺方式
-  if (custormStyleConfig.product_attrs_style === 3) {
-    // 平铺方式渲染 商品详情
-    tileRender();
-    $(".fx-details-bigBox").css({ display: "block" });
-    // 判断是否隐藏商品属性
-    judgeGoodsIsHidden();
-    // 判断是否能出售
-    checkSell("tile");
-    return;
   }
   // 说明是多个下拉框的方式
   if (custormStyleConfig.product_attrs_style === 2) {
@@ -5785,7 +5760,11 @@ function pcComboDetailsRender() {
     }
     doms + "</div>";
     // 渲染详情展示页面
-    $(".product_single_price").after(doms);
+    if (theme === "vogue") {
+      // 渲染详情展示页面
+      $(".product_single_price").after(doms);
+      $(".product_single .input_attrs_box").remove();
+    }
     // 根据主题 挂载在不同的dom上
     if (theme === "default") {
       // Basic 主题
@@ -5811,6 +5790,17 @@ function pcComboDetailsRender() {
     custormSelect();
     // 判断是否能出售
     checkSell();
+    return;
+  }
+  // 平铺方式
+  if (custormStyleConfig.product_attrs_style === 3) {
+    // 平铺方式渲染 商品详情
+    tileRender();
+    $(".fx-details-bigBox").css({ display: "block" });
+    // 判断是否隐藏商品属性
+    judgeGoodsIsHidden();
+    // 判断是否能出售
+    checkSell("tile");
     return;
   }
 }
@@ -5883,11 +5873,30 @@ function selectPropertyCombination() {
     // 屏蔽购物车按钮
     $(".addcart").css({ visibility: "hidden", positon: "absolute" });
   }
-  // 渲染详情展示页面
-  $(".product_single_price").after(doms);
-  $(".product_single .input_attrs_box").remove();
+  if (theme === "vogue") {
+    // 渲染详情展示页面
+    $(".product_single_price").after(doms);
+    $(".product_single .input_attrs_box").remove();
+  }
+  // 判断布局是否横向排列
+  if (custormStyleConfig.product_card_style === 2) {
+    $(".fx-detailsBox").addClass("fx-detailsBox-transverse");
+    $(".fx-details-bigBox").addClass("fx-details-bigBox-transverse");
+    $(".fx-leftImg").addClass("fx-leftImg-transverse");
+    $(".fx-rightBox").addClass("fx-rightBox-transverse");
+    $(".fx-title").addClass("fx-title-transverse");
+    $(".fx-select").addClass("fx-select-transverse");
+    $(".fx-list").addClass("fx-list-transverse");
+  } else {
+    $(".fx-details-bigBox").css({ display: "block" });
+  }
   // 自定义下拉框逻辑
   custormSelect();
+  // 判断是否隐藏商品属性
+  judgeGoodsIsHidden();
+  // 判断是否能出售
+  checkSell();
+  return;
 }
 // 自定义下拉框逻辑
 function custormSelect() {
@@ -5929,8 +5938,22 @@ function custormSelect() {
   });
   // 自定义下拉框逻辑 end
 }
+// 判断商品详情是否隐藏
+function judgeGoodsIsHidden() {
+  if (hideGoods) {
+    $(".fx-detailsBox").css({ visibility: "hidden", position: "absolute" });
+    $(".fx-details-bigBox").css({ visibility: "hidden", position: "absolute" });
+  } else {
+    $(".fx-detailsBox").css({ visibility: "visible", position: "relative" });
+    $(".fx-details-bigBox").css({
+      visibility: "visible",
+      position: "relative",
+    });
+  }
+}
 // 判断是否还能在售卖
 function checkSell(type) {
+  console.log("checksell 执行力");
   // type 为 tile 说明为平铺的方式
   // 购物车参数对象
   let params = [];
@@ -5976,7 +5999,6 @@ function checkSell(type) {
     }
     params.push(obj);
   }
-
   // 数量默认为1
   params.forEach((item) => {
     item.quantity = condition_num;
@@ -5994,6 +6016,101 @@ function checkSell(type) {
   // 判断渲染的加入购物车按钮
   AddCartButtonStyle(stockIsNull, params);
 }
+// -------------------------------------pc端平铺方式------------------------
+function tileRender() {
+  let doms = `<div class="fx-details-bigBox">`;
+  // 处理平铺渲染数据
+  propertyCombination(arr);
+  if (Array.isArray(arr) && arr.length > 0) {
+    arr.forEach((item, index) => {
+      let img = item?.image ? item?.image : `${ASSET_ENDPOINT}/default.png`;
+      if (item.attrs_string.length > 0) {
+        doms += `
+                <div class="fx-tile-everyItem" data-index="${index}">
+                  <div class="fx-tile-everyItem-leftImg">
+                      <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
+                  </div>
+                  <div class="fx-tile-rightBox">
+                    <div class="fx-tile-goods-title" title="${item?.title}">
+                        ${item?.title}
+                    </div>
+                    <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${
+          item.attrs_string[0]
+        }'>
+                      ${item.attrs_string.reduce((prev, currents, indexs) => {
+                        return (
+                          prev +
+                          `
+                            <div class="fx-tile-propertyBox-item" id="${index}${indexs}" data-value="${currents}" title="${currents}" data-keys="${index}" key="${indexs}">${currents}</div>
+                            `
+                        );
+                      }, "")}
+                    </div>
+                  </div>
+                </div>
+                `;
+      } else {
+        doms += `
+                <div class="fx-tile-everyItem" data-index="${index}">
+                  <div class="fx-tile-everyItem-leftImg">
+                      <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
+                  </div>
+                  <div class="fx-tile-rightBox">
+                    <div class="fx-tile-goods-title">
+                        ${item?.title}
+                    </div>
+                    <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value="">
+                    </div>
+                  </div>
+                </div>
+                `;
+      }
+    });
+  }
+  doms + "</div>";
+  // 渲染详情展示页面
+  if (theme === "vogue") {
+    // 渲染详情展示页面
+    $(".product_single_price").after(doms);
+    $(".product_single .input_attrs_box").remove();
+  }
+  // 根据主题 挂载在不同的dom上
+  if (theme === "default") {
+    // Basic 主题
+    $(".deploy__price").after(doms);
+    $(".deploy__line").remove();
+    // 屏蔽购物车按钮
+    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
+  }
+  // 平铺自定义选择逻辑
+  tileCustomSelection();
+}
+// 平铺自定义选择逻辑
+function tileCustomSelection() {
+  // 默认给第一个选中
+  $(".fx-tile-propertyBox-item[key=0]").addClass(
+    "fx-tile-propertyBox-item-checked"
+  );
+  let color = $("#app .price_text").css("color");
+  let style = document.createElement("style");
+  style.innerHTML = `.fx-tile-propertyBox-item-checked{ background-color:${color} !important}`;
+  document.getElementsByTagName("head").item(0).appendChild(style);
+  // 点击选择每一项
+  $(".fx-tile-propertyBox-item").on("click", (event) => {
+    // 获取当前点击的id
+    let id = event.currentTarget.id;
+    let value = $(`#${id}`).attr("data-value");
+    let keys = $(`#${id}`).attr("data-keys");
+    $(`#${id}`).parent().attr("data-value", value);
+    // 点击当前选中，移除同级已经选中的
+    $(`.fx-tile-propertyBox-item[data-keys=${keys}]`).removeClass(
+      "fx-tile-propertyBox-item-checked"
+    );
+    $(`#${id}`).addClass("fx-tile-propertyBox-item-checked");
+    checkSell("tile");
+  });
+}
+// -------------------------------------pc端平铺方式end------------------------
 // 加入购物车按钮渲染判断
 function AddCartButtonStyle(stockIsNull, params) {
   // 如果是详情页 移除原本的加入购物车按钮 新增一个新的添加购物车按钮
@@ -6029,7 +6146,6 @@ function AddCartButtonStyle(stockIsNull, params) {
         disAbleValue =
           custormStyleConfig.button_style_details.soldButtonConfig.buttonText;
       }
-
       // 新增一个新的购物车按钮
       let addButton = `
       <div class="product_single_add_button transition-main fx-add-button">
@@ -6109,9 +6225,7 @@ function AddCartButtonStyle(stockIsNull, params) {
       let disAbleButton = `
         <div class="product_single_add_button product_single_add_button_disabled soldout fx-disable-basic">
           <span>${disAbleValue}</span>
-        </div>
-            `;
-
+        </div>`;
       if (stockIsNull) {
         if (!document.querySelector(".fx-disable-basic")) {
           $(".fx-details-bigBox").after(disAbleButton);
@@ -6120,6 +6234,7 @@ function AddCartButtonStyle(stockIsNull, params) {
         if (!document.querySelector(".basic—addToCartButton")) {
           $(".fx-details-bigBox").after(addButton);
         }
+        $(".basic—addToCartButton").off();
         // 重写点击逻辑
         $(".basic—addToCartButton").on("click", () => {
           buttonOnchilk(params);
@@ -6129,498 +6244,12 @@ function AddCartButtonStyle(stockIsNull, params) {
         // 背景颜色和文字颜色
         $(".basic—addToCartButton").css(
           "cssText",
-          `border:1px solid ${backgroundColor} !important `
-        );
-        $(".basic—addToCartButton").css(
-          "cssText",
-          `color:${textColor} !important `
-        );
-        $(".basic—addToCartButton").css(
-          "cssText",
-          `background-color:${backgroundColor} !important `
+          `border:1px solid ${backgroundColor} !important;color:${textColor} !important;background-color:${backgroundColor} !important `
         );
       }
     }
   }
 }
-// 购物车优惠卷逻辑判断 购物车是单独页面的情况
-function cartAndCouponJudge() {
-  // 适配basic主题
-  if (theme === "default") {
-    // 插入商品详情css
-    appendCss();
-    // 获取checkout旧按钮文字
-    let checkoutButtonTest = $(".foot .checkoutbox .checkout").html();
-    // 给checkout旧按钮添加一个新的类名
-    $(".foot .checkoutbox .checkout").addClass("fx-checkout-old");
-    // 老按钮隐藏
-    $(".foot .checkoutbox .checkout").css({ visibility: "hidden" });
-    // 移除paypal 支付
-    $(".paypal-button-render").remove();
-    // console.log("老按钮和paypal",document.querySelector(".cart-info .checkout"),document.querySelector(".cart-info .fx-checkout-old"))
-    let backgroundColor = ""; // 背景颜色
-    let textColor = ""; // 文字颜色
-    if (custormStyleConfig.button_style === 2) {
-      //  ------------------checkout按钮-----------------
-      // 按钮文字
-      checkoutButtonTest =
-        custormStyleConfig.button_style_details.checkOutButtonConfig.buttonText;
-      // 背景颜色
-      backgroundColor =
-        custormStyleConfig.button_style_details.checkOutButtonConfig
-          .backgroundColor;
-      // 文字颜色
-      textColor =
-        custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
-    }
-    // 创造一个新的checkout按钮
-    let newCheckoutButtonDom = `<button  type="button" class="fx-checkout fx-checkout-theme checkout secondary_title main_button">${checkoutButtonTest}<button>`;
-    // 插入新的按钮
-    $(".foot .checkoutbox .checkout").after(newCheckoutButtonDom);
-    // if (document.querySelector("#discount_price")) {
-    //   // 插入新的按钮
-    //   $(".cart-info #discount_price").after(newCheckoutButtonDom);
-    // } else {
-    //   // 插入新的按钮
-    //   $(".cart-info .cart-info_price").after(newCheckoutButtonDom);
-    // }
-    // 改变checkout的背景颜色和文字颜色
-    if (backgroundColor && textColor) {
-      // 背景颜色和文字颜色
-      let style = document.createElement("style");
-      // style.innerHTML = `#app .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
-      // document.getElementsByTagName("head").item(0).appendChild(style);
-      $(".fx-checkout").css(
-        "cssText",
-        `color:${textColor} !important;border:1px solid ${backgroundColor} !important  `
-      );
-      $(".fx-checkout").css(
-        "cssText",
-        `background-color:${backgroundColor} !important;`
-      );
-    }
-    // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
-    $(".fx-checkout").on("click", () => {
-      requestCartAndCheckedCoupon();
-    });
-    return;
-  }
-  // 插入商品详情css
-  appendCss();
-  // 获取checkout旧按钮文字
-  let checkoutButtonTest = $(".cart-info .checkout").html();
-  // 给checkout旧按钮添加一个新的类名
-  $(".cart-info .checkout").addClass("fx-checkout-old");
-  // 老按钮隐藏
-  $(".cart-info .fx-checkout-old").css({ visibility: "hidden" });
-  // 移除paypal 支付
-  $(".paypal-button-render").remove();
-  // console.log("老按钮和paypal",document.querySelector(".cart-info .checkout"),document.querySelector(".cart-info .fx-checkout-old"))
-  let backgroundColor = ""; // 背景颜色
-  let textColor = ""; // 文字颜色
-  if (custormStyleConfig.button_style === 2) {
-    //  ------------------checkout按钮-----------------
-    // 按钮文字
-    checkoutButtonTest =
-      custormStyleConfig.button_style_details.checkOutButtonConfig.buttonText;
-    // 背景颜色
-    backgroundColor =
-      custormStyleConfig.button_style_details.checkOutButtonConfig
-        .backgroundColor;
-    // 文字颜色
-    textColor =
-      custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
-  }
-  // 创造一个新的checkout按钮
-  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout  secondary_title transition-main">${checkoutButtonTest}<button>`;
-  if (document.querySelector("#discount_price")) {
-    // 插入新的按钮
-    $(".cart-info #discount_price").after(newCheckoutButtonDom);
-  } else {
-    // 插入新的按钮
-    $(".cart-info .cart-info_price").after(newCheckoutButtonDom);
-  }
-  // 改变checkout的背景颜色和文字颜色
-  if (backgroundColor && textColor) {
-    // 背景颜色和文字颜色
-    let style = document.createElement("style");
-    style.innerHTML = `#app .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
-    document.getElementsByTagName("head").item(0).appendChild(style);
-    $(".fx-checkout").css(
-      "cssText",
-      `color:${textColor} !important;border:1px solid ${backgroundColor} !important  `
-    );
-  }
-  // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
-  $(".fx-checkout").on("click", () => {
-    requestCartAndCheckedCoupon();
-  });
-}
-// 购物车优惠卷逻辑判断 购物车是弹窗或抽屉的情况
-function carPopUptAndCouponJudge() {
-  // 插入css
-  appendCss();
-  if (document.querySelector(".inlineCart .emptyCart")) {
-    return;
-  }
-  $(".inlineCart .checkout").addClass("fx-checkout-old");
-  // 移除paypal 支付
-  $(".paypal-button-render").remove();
-  let checkoutButtonTest = $(
-    ".inlineCart .checkout_flex .fx-checkout-old span"
-  ).html();
-  let backgroundColor = ""; // 背景颜色
-  let textColor = ""; // 文字颜色
-  if (custormStyleConfig.button_style === 2) {
-    //  ------------------checkout按钮-----------------
-    // 按钮文字
-    checkoutButtonTest =
-      custormStyleConfig.button_style_details.checkOutButtonConfig.buttonText;
-    // 背景颜色
-    backgroundColor =
-      custormStyleConfig.button_style_details.checkOutButtonConfig
-        .backgroundColor;
-    // 文字颜色
-    textColor =
-      custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
-  }
-  // 新的按钮
-  let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart  secondary_title transition-main">${checkoutButtonTest}<button>`;
-
-  if (!document.querySelector(".fx-checkout-inlineCart")) {
-    // 插入新的按钮
-    $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
-  }
-  // 改变checkout的背景颜色和文字颜色
-  if (backgroundColor && textColor) {
-    // 背景颜色和文字颜色
-    let style = document.createElement("style");
-    style.innerHTML = `.inlineCart .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
-    document.getElementsByTagName("head").item(0).appendChild(style);
-    $(".inlineCart .fx-checkout-inlineCart").css(
-      "cssText",
-      `color:${textColor} !important;border:1px solid ${backgroundColor} !important  `
-    );
-  }
-  // 老按钮隐藏
-  $(".inlineCart .checkout").css({ visibility: "hidden" });
-  $(".inlineCart .fx-checkout-inlineCart").css({ visibility: "visible" });
-  // 监听remove 判断购物车是否为空
-  monitorCart();
-  // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
-  $(".fx-checkout-inlineCart").on("click", () => {
-    requestCartAndCheckedCoupon();
-  });
-}
-// 请求购物车接口以及验证优惠卷逻辑接口
-function requestCartAndCheckedCoupon() {
-  $(".fx-checkout-inlineCart").removeClass("transition-main");
-  $(".fx-checkout-inlineCart").addClass("fx-checkout-loading");
-  $(".fx-checkout").removeClass("transition-main");
-  $(".fx-checkout").addClass("fx-checkout-loading");
-  // 请求购物车详情接口
-  fetch(`${origin}/api/store/cart`, {
-    method: "GET",
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      let hash = data.hash;
-      if (Array.isArray(data.cart) && data.cart.length === 0) {
-        // 购物车为空 直接执行老按钮逻辑
-        // 执行老按钮逻辑
-        if (document.querySelector(".fx-checkout-old")) {
-          document.querySelector(".fx-checkout-old").click();
-        } else {
-          document.querySelector(".checkout").click();
-        }
-        return;
-      }
-      let product_id = Object.values(data.cart).map((item) => {
-        return item.product_id;
-      });
-      let goodsInfo = Object.values(data.cart).map((item) => {
-        return { id: item.product_id, num: item.quantity };
-      });
-      let skuIds = Object.values(data.cart).map((item) => {
-        if (item.variation_id) {
-          return item.variation_id;
-        } else {
-          return;
-        }
-      });
-      let code = data.coupons["cart discount"]
-        ? data.coupons["cart discount"].code
-        : "";
-      // 如果没有发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
-      if (!code) {
-        // 执行老按钮逻辑
-        if (document.querySelector(".fx-checkout-old")) {
-          document.querySelector(".fx-checkout-old").click();
-        } else {
-          document.querySelector(".checkout").click();
-        }
-        setTimeout(() => {
-          $(".fx-checkout").addClass("transition-main");
-          $(".fx-checkout").removeClass("fx-checkout-loading");
-          $(".fx-checkout-inlineCart").addClass("transition-main");
-          $(".fx-checkout-inlineCart").removeClass("fx-checkout-loading");
-        }, 1500);
-        return;
-      }
-      // 请求检查优惠卷接口
-      fetch(`${API_ENDPOINT}/api/checkCoupon`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code,
-          shop,
-          goodsInfo,
-          ids: product_id,
-          skuIds: skuIds,
-        }),
-      })
-        .then((response) => response.json())
-        .then((res) => {
-          if (res.code === 200) {
-            let { status } = res.data;
-            // 如果优惠卷 不可用 就删除
-            if (!status) {
-              fetch(
-                `${origin}/api/store/cart/coupons/${code}?cart_hash=${hash}`,
-                {
-                  method: "DELETE",
-                }
-              )
-                .then((response) => response.json())
-                .then((res) => {
-                  // 执行老按钮逻辑
-                  // 执行老按钮逻辑
-                  if (document.querySelector(".fx-checkout-old")) {
-                    document.querySelector(".fx-checkout-old").click();
-                  } else {
-                    document.querySelector(".checkout").click();
-                  }
-                  setTimeout(() => {
-                    $(".fx-checkout").addClass("transition-main");
-                    $(".fx-checkout").removeClass("fx-checkout-loading");
-                  }, 1500);
-                });
-            } else {
-              // 执行老按钮逻辑
-              // 执行老按钮逻辑
-              if (document.querySelector(".fx-checkout-old")) {
-                document.querySelector(".fx-checkout-old").click();
-              } else {
-                document.querySelector(".checkout").click();
-              }
-              setTimeout(() => {
-                $(".fx-checkout").addClass("transition-main");
-                $(".fx-checkout").removeClass("fx-checkout-loading");
-              }, 1500);
-            }
-          }
-        });
-    });
-}
-// 监听remove 判断购物车是否为空
-function monitorCart() {
-  $(".inlineCart .remove .text-uppercase").on("click", () => {
-    let removeNumber = document.querySelectorAll(
-      ".remove .text-uppercase"
-    ).length;
-    if (removeNumber <= 1) {
-      $(".inlineCart .fx-checkout-old").css({ visibility: "visible" });
-      $(".inlineCart .fx-checkout").css({ visibility: "hidden" });
-    }
-  });
-}
-
-// ----------------------------------商品详情页逻辑------------------------------
-// 获取初始时样式配置
-function getCartStyleConfig(type) {
-  fetch(`${API_ENDPOINT}/api/getStyleSetting?shop=${shop}`, {
-    method: "GET",
-  })
-    .then((response) => response.json())
-    .then((res) => {
-      if (res.data.button_style === 2) {
-        res.data.button_style_details = JSON.parse(
-          res.data.button_style_details
-        );
-      }
-      custormStyleConfig = res.data;
-      if (res.code === 200) {
-        if (type === "popUpCart") {
-          // 购物车时弹出框的形式
-          carPopUptAndCouponJudge();
-        } else {
-          if (theme === "vogue") {
-            // 购物车时单独页面的情况
-            var timer = window.setInterval(() => {
-              if (!document.querySelector(".fx-checkout-old")) {
-                cartAndCouponJudge();
-              } else {
-                window.clearInterval(timer);
-              }
-            }, 600);
-          }
-          if (theme === "default") {
-            // 购物车时单独页面的情况
-            var timer = window.setInterval(() => {
-              if (!document.querySelector(".fx-checkout-old")) {
-                cartAndCouponJudge();
-              } else {
-                window.clearInterval(timer);
-              }
-            }, 600);
-          }
-        }
-      }
-    });
-}
-// 属性组合数据处理（bule/s）
-function propertyCombination(array) {
-  let arr2 = JSON.parse(JSON.stringify(array));
-  array.forEach((item, index) => {
-    if (item.variants.length > 0) {
-      item.variants.forEach((item2, index2) => {
-        let str = "";
-        item2.attrs.forEach((item3) => {
-          str += `${item3.value}/`;
-        });
-        str = str.slice(0, -1);
-        arr2[index].variants[index2].attrs_string = str;
-      });
-    }
-  });
-  let arr3 = JSON.parse(JSON.stringify(arr2));
-  arr2.forEach((item, index) => {
-    if (item.variant_attrs.length > 0) {
-      let variant_attrs_arr = item.variant_attrs.map((item) => {
-        return item.value;
-      });
-      if (variant_attrs_arr.length > 1) {
-        let attrs = attrArrPermutations(variant_attrs_arr).flat();
-        newAttrs = attrs.flatMap((item) => {
-          return item.join("/");
-        });
-
-        arr3[index].attrs_string = newAttrs;
-      } else {
-        arr3[index].attrs_string = variant_attrs_arr.flat();
-      }
-    } else {
-      arr3[index].attrs_string = [];
-    }
-  });
-  arr3.forEach((itemss, index) => {
-    if (itemss.variants.length > 0) {
-      let all_attrs = itemss.variants.map((elemt) => {
-        return elemt.attrs_string;
-      });
-      let arrtsArr = itemss.attrs_string;
-      let s1 = new Set(arrtsArr);
-      let result = new Set(all_attrs.filter((item) => s1.has(item)));
-      itemss.attrs_string = Array.from(result);
-    }
-  });
-
-  arr = arr3;
-}
-// -------------------------------------pc端平铺方式------------------------
-function tileRender() {
-  let doms = `<div class="fx-details-bigBox">`;
-  // 处理平铺渲染数据
-  propertyCombination(arr);
-  if (Array.isArray(arr) && arr.length > 0) {
-    arr.forEach((item, index) => {
-      let img = item?.image ? item?.image : `${ASSET_ENDPOINT}/default.png`;
-      if (item.attrs_string.length > 0) {
-        doms += `
-                <div class="fx-tile-everyItem" data-index="${index}">
-                  <div class="fx-tile-everyItem-leftImg">
-                      <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
-                  </div>
-                  <div class="fx-tile-rightBox">
-                    <div class="fx-tile-goods-title" title="${item?.title}">
-                        ${item?.title}
-                    </div>
-                    <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${
-          item.attrs_string[0]
-        }'>
-                      ${item.attrs_string.reduce((prev, currents, indexs) => {
-                        return (
-                          prev +
-                          `
-                            <div class="fx-tile-propertyBox-item" id="${index}${indexs}" data-value="${currents}" title="${currents}" data-keys="${index}" key="${indexs}">${currents}</div>
-                            `
-                        );
-                      }, "")}
-                    </div>
-                  </div>
-                </div>
-                `;
-      } else {
-        doms += `
-                <div class="fx-tile-everyItem" data-index="${index}">
-                  <div class="fx-tile-everyItem-leftImg">
-                      <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
-                  </div>
-                  <div class="fx-tile-rightBox">
-                    <div class="fx-tile-goods-title">
-                        ${item?.title}
-                    </div>
-                    <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value="">
-                    </div>
-                  </div>
-                </div>
-                `;
-      }
-    });
-  }
-  doms + "</div>";
-  // 渲染详情展示页面
-  $(".product_single_price").after(doms);
-  $(".product_single .input_attrs_box").remove();
-  // 根据主题 挂载在不同的dom上
-  if (theme === "default") {
-    // Basic 主题
-    $(".deploy__price").after(doms);
-    $(".deploy__line").remove();
-    // 屏蔽购物车按钮
-    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
-  }
-  // 平铺自定义选择逻辑
-  tileCustomSelection();
-}
-// 平铺自定义选择逻辑
-function tileCustomSelection() {
-  // 默认给第一个选中
-  $(".fx-tile-propertyBox-item[key=0]").addClass(
-    "fx-tile-propertyBox-item-checked"
-  );
-  let color = $("#app .price_text").css("color");
-  let style = document.createElement("style");
-  style.innerHTML = `.fx-tile-propertyBox-item-checked{ background-color:${color} !important}`;
-  document.getElementsByTagName("head").item(0).appendChild(style);
-  // 点击选择每一项
-  $(".fx-tile-propertyBox-item").on("click", (event) => {
-    // 获取当前点击的id
-    let id = event.currentTarget.id;
-    let value = $(`#${id}`).attr("data-value");
-    let keys = $(`#${id}`).attr("data-keys");
-    $(`#${id}`).parent().attr("data-value", value);
-    // 点击当前选中，移除同级已经选中的
-    $(`.fx-tile-propertyBox-item[data-keys=${keys}]`).removeClass(
-      "fx-tile-propertyBox-item-checked"
-    );
-    $(`#${id}`).addClass("fx-tile-propertyBox-item-checked");
-    checkSell("tile");
-  });
-}
-// -------------------------------------pc端平铺方式end------------------------
 // 自定义购物车按钮点击函数
 function buttonOnchilk(params) {
   params.forEach((item) => {
@@ -6629,18 +6258,28 @@ function buttonOnchilk(params) {
   let paramsObj = {
     product: params,
   };
+  console.log("paramsObj", paramsObj);
   // 请求 然后跳转购物车
   jumpTocart(paramsObj);
 }
-// 添加到购物车
+// 添加商品到购物车
 function jumpTocart(params) {
+  let newParams = JSON.parse(JSON.stringify(params));
+  console.log("newParams", newParams);
+  newParams.product.forEach((item) => {
+    item.quantity = condition_num; // 数量至少为最低的件数
+    if (item.stock) {
+      delete item.stock;
+    }
+  });
   if (canClickAddButton) {
     // 添加loading状态
     $(".fx-add-button").removeClass("transition-main");
     $(".fx-add-button").addClass("fx-add-button-loading");
-    $(".basic—addToCartButton").addClass("basic—addToCartButton-loading ");
+    $(".basic—addToCartButton").addClass("basic—addToCartButton-loading");
     $(".basic—addToCartButton").removeClass("minor_button");
     $(".basic—addToCartButton").removeClass("el-button");
+    return;
     canClickAddButton = false;
     let origin = window.location.origin || "https://powder70.hotishop.com";
     let cartInfo = params.product || [];
@@ -6664,8 +6303,11 @@ function jumpTocart(params) {
           setTimeout(() => {
             $(".fx-error-message").remove();
           }, 5000);
-          $(".basic—addToCartButton").removeClass("fx-add-button-loading");
+          $(".basic—addToCartButton").removeClass(
+            "basic—addToCartButton-loading"
+          );
           $(".basic—addToCartButton").addClass("minor_button");
+          $(".basic—addToCartButton").addClass("el-button");
           canClickAddButton = true;
           return;
         }
@@ -6718,8 +6360,11 @@ function jumpTocart(params) {
             $(".fx-error-message").remove();
           }, 5000);
           canClickAddButton = true;
-          $(".basic—addToCartButton").removeClass("fx-add-button-loading");
+          $(".basic—addToCartButton").removeClass(
+            "basic—addToCartButton-loading"
+          );
           $(".basic—addToCartButton").addClass("minor_button");
+          $(".basic—addToCartButton").addClass("el-button");
           return;
         } else {
           // 创建优惠卷promise
@@ -6739,13 +6384,6 @@ function jumpTocart(params) {
                 reject(error);
               });
           });
-          let newParams = JSON.parse(JSON.stringify(params));
-          newParams.product.forEach((item) => {
-            item.quantity = condition_num; // 数量至少为最低的件数
-            if (item.stock) {
-              delete item.stock;
-            }
-          });
           // 商品添加到购物车promise
           const addToCartpromise = new Promise((resolve, reject) => {
             // ajax改造
@@ -6754,7 +6392,7 @@ function jumpTocart(params) {
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(params),
+              body: JSON.stringify(newParams),
             })
               .then((response) => response.json())
               .then((res) => {
@@ -6772,6 +6410,9 @@ function jumpTocart(params) {
                 let message = `<div class="fx-error-message"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
                 $("body").append(message);
                 $(".fx-add-button").removeClass("fx-add-button-loading");
+                $(".basic—addToCartButton").removeClass(
+                  "basic—addToCartButton-loading"
+                );
                 setTimeout(() => {
                   $(".fx-error-message").remove();
                 }, 3000);
@@ -6847,6 +6488,404 @@ function jumpTocart(params) {
       });
   }
 }
+// ---------------------------------------------------------------商品详情渲染逻辑end-----------------------------------
+
+// ---------------------------------------------------------------checkout逻辑 start----------------------------------------
+// 获取初始时样式配置
+function getCartStyleConfig(type) {
+  fetch(`${API_ENDPOINT}/api/getStyleSetting?shop=${shop}`, {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((res) => {
+      console.log("checkout界面res", res);
+      if (res.code === 200) {
+        if (res.data.button_style === 2) {
+          res.data.button_style_details = JSON.parse(
+            res.data.button_style_details
+          );
+        }
+        custormStyleConfig = res.data;
+        // 购物车时弹出框的形式
+        if (type === "popUpCart") {
+          carPopUptAndCouponJudge();
+        } else {
+          // 目前适配两个主题
+          // 购物车时单独页面的情况
+          var timer = window.setInterval(() => {
+            if (!document.querySelector(".fx-checkout-old")) {
+              cartAndCouponJudge();
+            } else {
+              window.clearInterval(timer);
+            }
+          }, 600);
+          // if (theme === "vogue") {
+          // }
+          // if (theme === "default") {
+          //   // 购物车时单独页面的情况
+          //   var timer = window.setInterval(() => {
+          //     if (!document.querySelector(".fx-checkout-old")) {
+          //       cartAndCouponJudge();
+          //     } else {
+          //       window.clearInterval(timer);
+          //     }
+          //   }, 600);
+          // }
+        }
+      }
+    });
+}
+// checkout判断 购物车是单独页面的情况
+function cartAndCouponJudge() {
+  // 适配basic主题
+  if (theme === "default") {
+    console.log("我加入了default主题");
+    // 插入商品详情css
+    appendCss();
+    // 获取checkout旧按钮文字
+    let checkoutButtonTest = $(".foot .checkoutbox .checkout").html();
+    // 给checkout旧按钮添加一个新的类名
+    $(".foot .checkoutbox .checkout").addClass("fx-checkout-old");
+    // 老按钮隐藏
+    $(".foot .checkoutbox .checkout").css({ visibility: "hidden" });
+    // 移除paypal 支付
+    $(".paypal-button-render").remove();
+    let backgroundColor = ""; // 背景颜色
+    let textColor = ""; // 文字颜色
+    if (custormStyleConfig.button_style === 2) {
+      // 按钮文字
+      checkoutButtonTest =
+        custormStyleConfig.button_style_details.checkOutButtonConfig.buttonText;
+      // 背景颜色
+      backgroundColor =
+        custormStyleConfig.button_style_details.checkOutButtonConfig
+          .backgroundColor;
+      // 文字颜色
+      textColor =
+        custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
+    }
+    // 创造一个新的checkout按钮
+    let newCheckoutButtonDom = `<button  type="button" class="fx-checkout fx-checkout-theme checkout secondary_title main_button">${checkoutButtonTest}<button>`;
+    // 插入新的按钮
+    $(".foot .checkoutbox .fx-checkout-old").after(newCheckoutButtonDom);
+    $(".fx-checkout").next().remove();
+    // if (document.querySelector("#discount_price")) {
+    //   // 插入新的按钮
+    //   $(".cart-info #discount_price").after(newCheckoutButtonDom);
+    // } else {
+    //   // 插入新的按钮
+    //   $(".cart-info .cart-info_price").after(newCheckoutButtonDom);
+    // }
+    // 改变checkout的背景颜色和文字颜色
+    if (backgroundColor && textColor) {
+      // 背景颜色和文字颜色
+      $(".fx-checkout").css(
+        "cssText",
+        `color:${textColor} !important;border:1px solid ${backgroundColor} !important;background-color:${backgroundColor} !important;`
+      );
+    }
+    // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
+    $(".fx-checkout").on("click", () => {
+      requestCartAndCheckedCoupon();
+    });
+    return;
+  }
+  console.log("我加入了vogule主题");
+  // 插入商品详情css
+  appendCss();
+  // 获取checkout旧按钮文字
+  let checkoutButtonTest = $(".cart-info .checkout").html();
+  // 给checkout旧按钮添加一个新的类名
+  $(".cart-info .checkout").addClass("fx-checkout-old");
+  // 老按钮隐藏
+  $(".cart-info .fx-checkout-old").css({ visibility: "hidden" });
+  // 移除paypal 支付
+  $(".paypal-button-render").remove();
+  // console.log("老按钮和paypal",document.querySelector(".cart-info .checkout"),document.querySelector(".cart-info .fx-checkout-old"))
+  let backgroundColor = ""; // 背景颜色
+  let textColor = ""; // 文字颜色
+  if (custormStyleConfig.button_style === 2) {
+    //  ------------------checkout按钮-----------------
+    // 按钮文字
+    checkoutButtonTest =
+      custormStyleConfig.button_style_details.checkOutButtonConfig.buttonText;
+    // 背景颜色
+    backgroundColor =
+      custormStyleConfig.button_style_details.checkOutButtonConfig
+        .backgroundColor;
+    // 文字颜色
+    textColor =
+      custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
+  }
+  // 创造一个新的checkout按钮
+  let newCheckoutButtonDom = `<button data-1997 data-key="custorm" type="button" class="fx-checkout  secondary_title transition-main">${checkoutButtonTest}<button>`;
+  if (document.querySelector("#discount_price")) {
+    // 插入新的按钮
+    $(".cart-info #discount_price").after(newCheckoutButtonDom);
+  } else {
+    // 插入新的按钮
+    $(".cart-info .cart-info_price").after(newCheckoutButtonDom);
+  }
+  // 改变checkout的背景颜色和文字颜色
+  if (backgroundColor && textColor) {
+    // 背景颜色和文字颜色
+    let style = document.createElement("style");
+    style.innerHTML = `#app .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
+    document.getElementsByTagName("head").item(0).appendChild(style);
+    $(".fx-checkout").css(
+      "cssText",
+      `color:${textColor} !important;border:1px solid ${backgroundColor} !important  `
+    );
+  }
+  // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
+  $(".fx-checkout").on("click", () => {
+    requestCartAndCheckedCoupon();
+  });
+}
+// checkout判断 购物车是弹窗或抽屉的情况
+function carPopUptAndCouponJudge() {
+  console.log(
+    "我进来了 购物车弹窗替换函数",
+    theme,
+    document.querySelector(
+      ".drawer_inner_foot .drawer_inner_foot_price .secondary_title"
+    )
+  );
+  // 插入css
+  appendCss();
+  if (theme === "vogue") {
+    if (document.querySelector(".inlineCart .emptyCart")) {
+      return;
+    }
+    $(".inlineCart .checkout").addClass("fx-checkout-old");
+    // 移除paypal 支付
+    $(".paypal-button-render").remove();
+    let checkoutButtonTest = $(
+      ".inlineCart .checkout_flex .fx-checkout-old span"
+    ).html();
+    let backgroundColor = ""; // 背景颜色
+    let textColor = ""; // 文字颜色
+    if (custormStyleConfig.button_style === 2) {
+      //  ------------------checkout按钮-----------------
+      // 按钮文字
+      checkoutButtonTest =
+        custormStyleConfig.button_style_details.checkOutButtonConfig.buttonText;
+      // 背景颜色
+      backgroundColor =
+        custormStyleConfig.button_style_details.checkOutButtonConfig
+          .backgroundColor;
+      // 文字颜色
+      textColor =
+        custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
+    }
+    // 新的按钮
+    let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart  secondary_title transition-main">${checkoutButtonTest}<button>`;
+    if (!document.querySelector(".fx-checkout-inlineCart")) {
+      // 插入新的按钮
+      $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
+    }
+    // 改变checkout的背景颜色和文字颜色
+    if (backgroundColor && textColor) {
+      // 背景颜色和文字颜色
+      let style = document.createElement("style");
+      style.innerHTML = `.inlineCart .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
+      document.getElementsByTagName("head").item(0).appendChild(style);
+      $(".inlineCart .fx-checkout-inlineCart").css(
+        "cssText",
+        `color:${textColor} !important;border:1px solid ${backgroundColor} !important  `
+      );
+    }
+    // 老按钮隐藏
+    $(".inlineCart .checkout").css({ visibility: "hidden" });
+    $(".inlineCart .fx-checkout-inlineCart").css({ visibility: "visible" });
+    // 监听remove 判断购物车是否为空
+    monitorCart();
+    // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
+    $(".fx-checkout-inlineCart").on("click", () => {
+      requestCartAndCheckedCoupon();
+    });
+  }
+  if (theme === "default") {
+    if (
+      !document.querySelector(
+        ".drawer_inner_foot .drawer_inner_foot_price .secondary_title"
+      )
+    ) {
+      return;
+    }
+    console.log("购物车弹出框 替换函数来了djfajhe");
+    $(".drawer_inner_foot  .checkout").addClass("fx-checkout-old");
+    // 移除paypal 支付
+    $(".paypal-button-render").remove();
+    // 获取checkout按钮文字
+    let checkoutButtonTest = $(".drawer_inner_foot  .checkout").html();
+    let backgroundColor = $(".drawer_inner_foot  .checkout").css(
+      "background-color"
+    ); // 背景颜色
+    let textColor = $(".drawer_inner_foot  .checkout").css("color"); // 文字颜色
+    console.log("颜色", backgroundColor, textColor);
+    if (custormStyleConfig.button_style === 2) {
+      //  ------------------checkout按钮-----------------
+      // 按钮文字
+      checkoutButtonTest =
+        custormStyleConfig.button_style_details.checkOutButtonConfig.buttonText;
+      // 背景颜色
+      backgroundColor =
+        custormStyleConfig.button_style_details.checkOutButtonConfig
+          .backgroundColor;
+      // 文字颜色
+      textColor =
+        custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
+    }
+    // 新的按钮
+    let newCheckoutButtonDom = `<div class="fx-checkout-inlineCarts">${checkoutButtonTest}<div>`;
+    // 老按钮隐藏
+    $(".drawer_inner_foot  .fx-checkout-old").css({
+      visibility: "hidden",
+    });
+    // 插入新的按钮
+    if (!document.querySelector(".fx-checkout-inlineCarts")) {
+      $(".fx-checkout-old").after(newCheckoutButtonDom);
+    }
+    $(".fx-checkout-inlineCarts").next().remove();
+    // 改变checkout的背景颜色和文字颜色
+    // 背景颜色和文字颜色
+    $(".fx-checkout-inlineCarts").css(
+      "cssText",
+      `color:${textColor};background-color:${backgroundColor};width:352px`
+    );
+    // 监听remove 判断购物车是否为空
+    monitorCart();
+    // 新按钮添加点击事件 请求购物车以及验证优惠卷接口
+    $(".fx-checkout-inlineCarts").on("click", () => {
+      requestCartAndCheckedCoupon();
+    });
+  }
+}
+// 请求购物车接口以及验证优惠卷逻辑接口
+function requestCartAndCheckedCoupon() {
+  console.log("我进入了验证cheour 函数");
+  if (theme === "default") {
+    $(".fx-checkout").removeClass("main_button");
+    $(".fx-checkout").addClass("fx-checkout-theme-loading");
+    $(".fx-checkout-inlineCarts").addClass("fx-checkout-theme-loading");
+    $(".fx-checkout").css("cssText", `background-color:#bfbfbf !important;`);
+  } else {
+    $(".fx-checkout-inlineCart").removeClass("transition-main");
+    $(".fx-checkout-inlineCart").addClass("fx-checkout-loading");
+    $(".fx-checkout").removeClass("transition-main");
+    $(".fx-checkout").addClass("fx-checkout-loading");
+  }
+  // 请求购物车详情接口
+  fetch(`${origin}/api/store/cart`, {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      let hash = data.hash;
+      if (Array.isArray(data.cart) && data.cart.length === 0) {
+        // 购物车为空 直接执行老按钮逻辑
+        // 执行老按钮逻辑
+        if (document.querySelector(".fx-checkout-old")) {
+          document.querySelector(".fx-checkout-old").click();
+        } else {
+          document.querySelector(".checkout").click();
+        }
+        return;
+      }
+      let product_id = Object.values(data.cart).map((item) => {
+        return item.product_id;
+      });
+      let goodsInfo = Object.values(data.cart).map((item) => {
+        return { id: item.product_id, num: item.quantity };
+      });
+      let skuIds = Object.values(data.cart).map((item) => {
+        if (item.variation_id) {
+          return item.variation_id;
+        } else {
+          return;
+        }
+      });
+      let code = data.coupons["cart discount"]
+        ? data.coupons["cart discount"].code
+        : "";
+      // 如果没有发现优惠卷code，不用检查优惠卷，直接执行老按钮逻辑
+      if (!code) {
+        // 执行老按钮逻辑
+        if (document.querySelector(".fx-checkout-old")) {
+          document.querySelector(".fx-checkout-old").click();
+        } else {
+          document.querySelector(".checkout").click();
+        }
+        setTimeout(() => {
+          $(".fx-checkout").addClass("transition-main");
+          $(".fx-checkout").removeClass("fx-checkout-loading");
+          $(".fx-checkout-inlineCart").removeClass("fx-checkout-loading");
+        }, 1500);
+        return;
+      }
+      // 请求检查优惠卷接口
+      fetch(`${API_ENDPOINT}/api/checkCoupon`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code,
+          shop,
+          goodsInfo,
+          ids: product_id,
+          skuIds: skuIds,
+        }),
+      })
+        .then((response) => response.json())
+        .then((res) => {
+          if (res.code === 200) {
+            let { status } = res.data;
+            // 如果优惠卷 不可用 就删除
+            if (!status) {
+              fetch(
+                `${origin}/api/store/cart/coupons/${code}?cart_hash=${hash}`,
+                {
+                  method: "DELETE",
+                }
+              )
+                .then((response) => response.json())
+                .then((res) => {
+                  // 执行老按钮逻辑
+                  document.querySelector(".fx-checkout-old").click();
+                  // if (document.querySelector(".fx-checkout-old")) {
+                  // }
+                  // setTimeout(() => {
+                  //   $(".fx-checkout").addClass("transition-main");
+                  //   $(".fx-checkout").removeClass("fx-checkout-loading");
+                  // }, 1500);
+                });
+            } else {
+              // 执行老按钮逻辑
+              document.querySelector(".fx-checkout-old").click();
+              // setTimeout(() => {
+              //   $(".fx-checkout").addClass("transition-main");
+              //   $(".fx-checkout").removeClass("fx-checkout-loading");
+              // }, 1500);
+            }
+          }
+        });
+    });
+}
+// 监听remove 判断购物车是否为空
+function monitorCart() {
+  $(".inlineCart .remove .text-uppercase").on("click", () => {
+    let removeNumber = document.querySelectorAll(
+      ".remove .text-uppercase"
+    ).length;
+    if (removeNumber <= 1) {
+      $(".inlineCart .fx-checkout-old").css({ visibility: "visible" });
+      $(".inlineCart .fx-checkout").css({ visibility: "hidden" });
+    }
+  });
+}
+// --------------------------------------------------数据处理函数 start------------------------------------------
 // 找到变种id在数组的下标
 function indexOf(arr, str) {
   // 传进来的不是数组或者空数组 直接返回-1；
@@ -6975,19 +7014,6 @@ function returnedDataProcessing(arrData) {
   // console.log("newArrData4",newArrData4)
   return newArrData4;
 }
-// 判断商品详情是否隐藏
-function judgeGoodsIsHidden() {
-  if (hideGoods) {
-    $(".fx-detailsBox").css({ visibility: "hidden", position: "absolute" });
-    $(".fx-details-bigBox").css({ visibility: "hidden", position: "absolute" });
-  } else {
-    $(".fx-detailsBox").css({ visibility: "visible", position: "relative" });
-    $(".fx-details-bigBox").css({
-      visibility: "visible",
-      position: "relative",
-    });
-  }
-}
 // 属性的排列组合
 function attrArrPermutations(arr) {
   let len = arr.length;
@@ -7022,6 +7048,55 @@ function attrArrPermutations(arr) {
   } else {
     return [arr[0]];
   }
+}
+// 属性组合数据处理（bule/s）
+function propertyCombination(array) {
+  let arr2 = JSON.parse(JSON.stringify(array));
+  array.forEach((item, index) => {
+    if (item.variants.length > 0) {
+      item.variants.forEach((item2, index2) => {
+        let str = "";
+        item2.attrs.forEach((item3) => {
+          str += `${item3.value}/`;
+        });
+        str = str.slice(0, -1);
+        arr2[index].variants[index2].attrs_string = str;
+      });
+    }
+  });
+  let arr3 = JSON.parse(JSON.stringify(arr2));
+  arr2.forEach((item, index) => {
+    if (item.variant_attrs.length > 0) {
+      let variant_attrs_arr = item.variant_attrs.map((item) => {
+        return item.value;
+      });
+      if (variant_attrs_arr.length > 1) {
+        let attrs = attrArrPermutations(variant_attrs_arr).flat();
+        newAttrs = attrs.flatMap((item) => {
+          return item.join("/");
+        });
+
+        arr3[index].attrs_string = newAttrs;
+      } else {
+        arr3[index].attrs_string = variant_attrs_arr.flat();
+      }
+    } else {
+      arr3[index].attrs_string = [];
+    }
+  });
+  arr3.forEach((itemss, index) => {
+    if (itemss.variants.length > 0) {
+      let all_attrs = itemss.variants.map((elemt) => {
+        return elemt.attrs_string;
+      });
+      let arrtsArr = itemss.attrs_string;
+      let s1 = new Set(arrtsArr);
+      let result = new Set(all_attrs.filter((item) => s1.has(item)));
+      itemss.attrs_string = Array.from(result);
+    }
+  });
+
+  arr = arr3;
 }
 // 详情页的插入自己写的css(纯原生js)
 function appendCss() {
