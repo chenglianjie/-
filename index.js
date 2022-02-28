@@ -5514,8 +5514,8 @@ function jumpTocart(params) {
           }, 5000);
           canClickAddButton = true;
           $(".basic—addToCartButton").removeClass("basic—addToCartButton-loading");
-          $(".basic—addToCartButton").addClass("minor_button");
-          $(".basic—addToCartButton").addClass("el-button");
+          // $(".basic—addToCartButton").addClass("minor_button");
+          // $(".basic—addToCartButton").addClass("el-button");
           return;
         } else {
           // 创建优惠卷promise
