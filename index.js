@@ -4798,6 +4798,7 @@ let custormStyleConfig = {
 let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
 let theme = window.current_theme || window.localStorage.getItem("current_theme"); // 当前的主题
+let isTakeDown = false; // 是否下架
 // 脚本开始
 $(function () {
   console.log("jq is readay", theme);
@@ -4805,8 +4806,11 @@ $(function () {
   // 判断购物车是弹窗和侧边弹出的情况
   if (theme === "vogue") {
     setTimeout(() => {
+      console.log("定时器执行了");
       if (document.querySelector(".inlineCart")) {
-        $(".header-right .cart").on("click", () => {
+        console.log("我进来了侧边购物车");
+        $(".header-right .icon-gouwuche").on("click", () => {
+          console.log("我点击了头部购物车按钮");
           getCartStyleConfig("popUpCart");
         });
       }
@@ -4848,6 +4852,8 @@ function getDataAndInsertHtml() {
       }
       // 判断是否隐藏商品详情
       hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
+      // 判断是否下架
+      isTakeDown = res.data.comboInfo.change_status === 2 ? true : false;
       // 返回商品数据处理，删除多余字段等
       arr = returnedDataProcessing(res.data.data);
       comboId = res.data.comboInfo.id; // comboId
@@ -5331,7 +5337,10 @@ function AddCartButtonStyle(stockIsNull, params) {
         $(".fx-details-bigBox").append(disAbleButton);
       } else {
         // stockIsNull 为false说明有库存，true说明没有库存
-        if (stockIsNull) {
+        if (stockIsNull || isTakeDown) {
+          if (isTakeDown) {
+            disAbleValue = "Product has been discontinued";
+          }
           $(".fx-details-bigBox").after(disAbleButton);
         } else {
           $(".fx-details-bigBox").after(addButton);
@@ -5339,7 +5348,7 @@ function AddCartButtonStyle(stockIsNull, params) {
             // 背景颜色和文字颜色
             $(".fx-add-button").css("cssText", `border:1px solid ${backgroundColor} !important `);
             let style = document.createElement("style");
-            style.innerHTML = `#app .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
+            style.innerHTML = `#app .transition-main:before{ background-color:${backgroundColor} !important}`;
             document.getElementsByTagName("head").item(0).appendChild(style);
             $(".fx-addCartButton-text").css("cssText", `color:${textColor} !important `);
           }
@@ -5384,7 +5393,10 @@ function AddCartButtonStyle(stockIsNull, params) {
         <div class="product_single_add_button product_single_add_button_disabled soldout fx-disable-basic">
           <span>${disAbleValue}</span>
         </div>`;
-      if (stockIsNull) {
+      if (stockIsNull || isTakeDown) {
+        if (isTakeDown) {
+          disAbleValue = "Product has been discontinued";
+        }
         if (!document.querySelector(".fx-disable-basic")) {
           $(".fx-details-bigBox").after(disAbleButton);
         }
@@ -5802,16 +5814,16 @@ function carPopUptAndCouponJudge() {
       textColor = custormStyleConfig.button_style_details.checkOutButtonConfig.textColor;
     }
     // 新的按钮
-    let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart  secondary_title transition-main">${checkoutButtonTest}<button>`;
+    let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart  secondary_title transition-main ">${checkoutButtonTest}<button>`;
     if (!document.querySelector(".fx-checkout-inlineCart")) {
       // 插入新的按钮
-      $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
+      $("#app .inlineCart .checkout_flex").append(newCheckoutButtonDom);
     }
     // 改变checkout的背景颜色和文字颜色
     if (backgroundColor && textColor) {
       // 背景颜色和文字颜色
       let style = document.createElement("style");
-      style.innerHTML = `.inlineCart .transition-main:before, .transition-main:before{ background-color:${backgroundColor} !important}`;
+      style.innerHTML = `#app .inlineCart .transition-main:before{ background-color:${backgroundColor} !important}`;
       document.getElementsByTagName("head").item(0).appendChild(style);
       $(".inlineCart .fx-checkout-inlineCart").css(
         "cssText",
@@ -5982,9 +5994,11 @@ function requestCartAndCheckedCoupon() {
 function monitorCart() {
   $(".inlineCart .remove .text-uppercase").on("click", () => {
     let removeNumber = document.querySelectorAll(".remove .text-uppercase").length;
+    console.log("remove按钮监听", removeNumber);
     if (removeNumber <= 1) {
       $(".inlineCart .fx-checkout-old").css({ visibility: "visible" });
       $(".inlineCart .fx-checkout").css({ visibility: "hidden" });
+      $(".inlineCart .fx-checkout-inlineCart").css({ visibility: "hidden" });
     }
   });
 }

@@ -591,3 +591,17 @@
   font-size: 16px;
   font-weight: 600;
 }
+
+@media screen and (max-width: 768px) {
+  .fx-checkout-inlineCarts {
+    width: 100% !important;
+  }
+  .fx-error-message2 {
+    /* text-align: left; */
+    width: 100%;
+    display: inline;
+    height: auto;
+    line-height: normal;
+    z-index: 99;
+  }
+}
