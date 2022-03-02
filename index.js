@@ -4773,7 +4773,7 @@ function rewirteLog() {
   })(console.log);
 }
 // 日志是否清除
-// rewirteLog();
+rewirteLog();
 // sentry 引入
 var script = document.createElement("script");
 // script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js"); // 正式上线url
@@ -4805,26 +4805,28 @@ $(function () {
   let { pathname = "" } = window.location;
   // 判断购物车是弹窗和侧边弹出的情况
   if (theme === "vogue") {
-    setTimeout(() => {
-      console.log("定时器执行了");
+    let cartTimerVogue = window.setInterval(() => {
       if (document.querySelector(".inlineCart")) {
-        console.log("我进来了侧边购物车");
-        $(".header-right .icon-gouwuche").on("click", () => {
-          console.log("我点击了头部购物车按钮");
-          getCartStyleConfig("popUpCart");
-        });
+        if (document.querySelector(".header-right .icon-gouwuche")) {
+          $(".header-right .icon-gouwuche").on("click", () => {
+            getCartStyleConfig("popUpCart");
+          });
+          clearInterval(cartTimerVogue);
+        }
       }
-    }, 2500);
+    }, 600);
   }
   if (theme === "default") {
-    setTimeout(() => {
+    let cartTimer = window.setInterval(() => {
       if (document.querySelector(".titlerightcart")) {
-        $(".headbox .icon-24gf-cart7").on("click", () => {
-          console.log("购物车时弹出框方式，点击了购物车图标");
-          getCartStyleConfig("popUpCart");
-        });
+        if (document.querySelector(".headbox .icon-24gf-cart7")) {
+          $(".headbox .icon-24gf-cart7").on("click", () => {
+            getCartStyleConfig("popUpCart");
+          });
+          clearInterval(cartTimer);
+        }
       }
-    }, 2500);
+    }, 600);
   }
   // -----------------------------商品详情页页面逻辑----------------------------
   if (pathname.indexOf("products") !== -1) {
@@ -5817,7 +5819,7 @@ function carPopUptAndCouponJudge() {
     let newCheckoutButtonDom = `<button data-1997  data-key="custorm" type="button" class="fx-checkout-inlineCart  secondary_title transition-main ">${checkoutButtonTest}<button>`;
     if (!document.querySelector(".fx-checkout-inlineCart")) {
       // 插入新的按钮
-      $("#app .inlineCart .checkout_flex").append(newCheckoutButtonDom);
+      $(".inlineCart .checkout_flex").append(newCheckoutButtonDom);
     }
     // 改变checkout的背景颜色和文字颜色
     if (backgroundColor && textColor) {
