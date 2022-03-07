@@ -5532,6 +5532,7 @@ function jumpTocart(params) {
           // $(".basic—addToCartButton").addClass("el-button");
           return;
         } else {
+          let url = origin + "/cart";
           // 创建优惠卷promise
           const createCouponPromise = new Promise((resolve, reject) => {
             fetch(`${API_ENDPOINT}/api/createCoupon`, {
@@ -5597,8 +5598,8 @@ function jumpTocart(params) {
                     .then((response) => response.json())
                     .then((data) => {
                       if (hash && code) {
-                        // 使用优惠卷
-                        useCoupon();
+                          // 使用优惠卷
+                          useCoupon();
                       } else if (hash) {
                         window.location.href = url;
                       }
@@ -5629,7 +5630,7 @@ function jumpTocart(params) {
                       $(".product_qty_box .add").off();
                       $(".product_qty_box .subtract").off();
                       let url = origin + "/cart";
-                      window.location.href = url;
+                        window.location.href = url;
                     });
                 }
               }
@@ -6223,8 +6224,8 @@ function appendCss() {
   let link1 = document.createElement("link");
   link1.setAttribute("rel", "stylesheet");
   link1.setAttribute("type", "text/css");
-  link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
-  // link1.setAttribute("href", "https://test.com/index.css");
+  // link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
+  link1.setAttribute("href", "https://test.com/index.css");
   let head = document.getElementsByTagName("head")[0];
   head.appendChild(link1);
   // 插入css 结束
