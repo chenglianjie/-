@@ -1,3 +1,21 @@
+.suit-box {
+  display: flex;
+}
+.suit-title {
+  margin: 20px 0px;
+  font-weight: 400;
+  font-size: 14px;
+  color: #2f2f2f;
+}
+.suit-item {
+  cursor: pointer;
+  display: inline-block;
+  border: 1px solid #d2d2d2;
+  height: 32px;
+  line-height: 22px;
+  padding: 4px 18px;
+  margin-right: 20px;
+}
 .fx-details-bigBox {
   width: 100%;
   margin-top: 20px;
@@ -386,7 +404,10 @@
     font-weight: bold;
     margin-bottom: 20px;
   }
-
+  .fx-goods-number {
+    position: relative;
+    top: -14px;
+  }
   /* color size 子项box */
   .fx-tile-propertyBox {
     display: flex;
@@ -591,7 +612,6 @@
   font-size: 16px;
   font-weight: 600;
 }
-
 @media screen and (max-width: 768px) {
   .fx-checkout-inlineCarts {
     width: 100% !important;
@@ -603,5 +623,11 @@
     height: auto;
     line-height: normal;
     z-index: 99;
+  }
+  .fx-add-button {
+    position: fixed !important;
+    left: 0px;
+    bottom: -16px;
+    z-index: 999 !important;
   }
 }

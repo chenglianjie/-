@@ -4773,7 +4773,7 @@ function rewirteLog() {
   })(console.log);
 }
 // 日志是否清除
-rewirteLog();
+// rewirteLog();
 // sentry 引入
 var script = document.createElement("script");
 // script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js"); // 正式上线url
@@ -4782,8 +4782,8 @@ script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
 // 字段定义
-const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
-// const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // dev环境
+// const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
+const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
@@ -4799,6 +4799,12 @@ let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
 let theme = window.current_theme || window.localStorage.getItem("current_theme"); // 当前的主题
 let isTakeDown = false; // 是否下架
+let combination_type = 1; // 1 捆绑商品combo 2 捆绑属性combo
+let suitarr = []; // 捆绑属性名称渲染
+let suitKey = ""; // 捆绑属性 combination_type 为2时选择的combo组合key;
+let totalPrice = 0; // combination_type 为2 计算选中商品的总价格
+let goodsSaleType = ""; // 商品优惠类型 (1--百分比减扣,2--一口价,3--固定减扣)
+let goodsDiscount = ""; // 商品优惠值
 // 脚本开始
 $(function () {
   console.log("jq is readay", theme);
@@ -4848,33 +4854,31 @@ function getDataAndInsertHtml() {
     .then((response) => response.json())
     .then((res) => {
       console.log("combo详情接口数据", res);
-      if (res.code !== 200 && !res.data.is_combo) {
+      if (res.code !== 200 && !res.data && !res.data.is_combo) {
         console.error("combo详情接口错误,或者不是combo组合商品，脚本不在往下执行");
         return;
       }
-      // 判断是否隐藏商品详情
-      hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
       // 判断是否下架
       isTakeDown = res.data.comboInfo.change_status === 2 ? true : false;
-      // 返回商品数据处理，删除多余字段等
-      arr = returnedDataProcessing(res.data.data);
+      // 判断是那种combo组合方式
+      combination_type = res.data.comboInfo.combination_type;
+      if (combination_type === 1) {
+        // 返回商品数据处理，删除多余字段等
+        arr = returnedDataProcessing(res.data.data);
+        condition_num = res.data.comboInfo.condition_num; // 最低件数
+        // 判断是否隐藏商品详情
+        hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
+      }
+      if (combination_type === 2) {
+        // 捆绑属性combo时 返回商品数据处理
+        goodsSaleType = res.data.comboInfo.sale_type;
+        suitarr = res.data.attribute.detaile_page_render_data;
+        suitKey = res.data.attribute.detaile_page_render_data[0].key;
+        goodsDiscount = res.data.attribute.detaile_page_render_data[0].discount;
+        arr = returnedDataProcessing(res.data.attribute.detaile_page_render_data[0].goodsRenderData);
+      }
       comboId = res.data.comboInfo.id; // comboId
-      condition_num = res.data.comboInfo.condition_num; // 最低件数
-      // 如果不是combo组合商品 直接return
-      // if (!res.data.is_combo) {
-      //   // $(".gallery_left").removeClass("fx-gallery_left");
-      //   // 判断购物车方式 是不是弹出框或者抽屉的方式
-      //   if (document.querySelector(".inlineCart")) {
-      //     document
-      //       .querySelector(".product_single_add .product_single_add_button")
-      //       .addEventListener("click", () => {
-      //         carPopUptAndCouponJudge();
-      //       });
-      //   }
-      //   return;
-      // }
-      // $(".gallery_left").addClass("fx-gallery_left");
-      // 获取自定义样式配置
+      // 获取购物车按钮，checkout按钮 slod out按钮自定义样式配置
       getStyleConfig();
     });
 }
@@ -4885,7 +4889,7 @@ function getStyleConfig() {
   })
     .then((response) => response.json())
     .then((res) => {
-      console.log("样式配置", res);
+      console.log("获取的样式配置", res);
       // button_style 1 为跟随主题 2 为自定义设置
       if (res.data.button_style === 2) {
         res.data.button_style_details = JSON.parse(res.data.button_style_details);
@@ -4893,93 +4897,22 @@ function getStyleConfig() {
       custormStyleConfig = res.data;
       // 获取自定义样式成功后，执行自定义渲染商品详情页
       if (res.code === 200) {
+        // 商品详情渲染函数
         pcComboDetailsRender();
       }
     });
 }
-// pc端渲染combo详情
+// pc端渲染combo详情 目前一共三种配置方式
 function pcComboDetailsRender() {
-  // 说明是属性组合式的下拉框 只有一个下拉框
+  // 说明是属性组合式（比如red/s）的下拉框 只有一个下拉框
   if (custormStyleConfig.product_attrs_style === 1) {
     // 下拉属性组合方式渲染
     selectPropertyCombination();
   }
   // 说明是多个下拉框的方式
   if (custormStyleConfig.product_attrs_style === 2) {
-    let doms = `<div class="fx-details-bigBox">`;
-    if (Array.isArray(arr) && arr.length > 0) {
-      arr.forEach((item, index) => {
-        let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
-        doms += `
-          <div class="fx-detailsBox" data-index="${index}">
-          <div class="fx-leftImg">
-              <img class="fx-leftImgSelf${index}" src="${img}" alt="" >
-          </div>
-          <div class="fx-rightBox">
-              <div class="fx-title" title="${item.title}">
-                  ${item.title}
-              </div>
-              <div class="selectBoxs">
-               ${item.variant_attrs.reduce((prev, currents, indexs) => {
-                 return (
-                   prev +
-                   `<div class="selectBox${index} selectItemBox" data-value="${currents.name}:${currents.value[0]}">
-                   <div class="fx-select" id="fx-select-${index}${indexs}"> 
-                  ${currents.name}:${currents.value[0]}               
-                   </div>
-                   <div class="fx-list" id="${index}${indexs}">
-                      ${currents.value.reduce((prev, current) => {
-                        return (
-                          prev +
-                          `
-                        <div class="fx-listItem" title="${currents.name}:${current}" key="${index}${indexs}">${currents.name}:${current}</div>
-                        `
-                        );
-                      }, "")}
-                    </div>
-                </div>
-                `
-                 );
-               }, "")}
-              </div>
-          </div>
-      </div>
-          `;
-      });
-    }
-    doms + "</div>";
-    // 渲染详情展示页面
-    if (theme === "vogue") {
-      // 渲染详情展示页面
-      $(".product_single_price").after(doms);
-      $(".product_single .input_attrs_box").remove();
-    }
-    // 根据主题 挂载在不同的dom上
-    if (theme === "default") {
-      // Basic 主题
-      $(".deploy__price").after(doms);
-      $(".deploy__line").remove();
-      // 屏蔽购物车按钮
-      $(".addcart").css({ visibility: "hidden", positon: "absolute" });
-    }
-    // 布局是否横向排列
-    if (custormStyleConfig.product_card_style === 2) {
-      $(".fx-detailsBox").addClass("fx-detailsBox-transverse");
-      $(".fx-details-bigBox").addClass("fx-details-bigBox-flex");
-      $(".fx-leftImg").addClass("fx-leftImg-transverse");
-      $(".fx-rightBox").addClass("fx-rightBox-transverse");
-      $(".fx-title").addClass("fx-title-transverse");
-    } else {
-      $(".fx-details-bigBox").css({ display: "block" });
-    }
-    $(".product_single .input_attrs_box").remove();
-    // 判断是否隐藏商品属性
-    judgeGoodsIsHidden();
-    // 自定义下拉框逻辑
-    custormSelect();
-    // 判断是否能出售
-    checkSell();
-    return;
+    // 多个下拉的方式;
+    multipleSelect();
   }
   // 平铺方式
   if (custormStyleConfig.product_attrs_style === 3) {
@@ -4993,9 +4926,108 @@ function pcComboDetailsRender() {
     return;
   }
 }
-// 下拉属性组合方式渲染
-function selectPropertyCombination() {
+// 多个下拉方式渲染数据
+function multipleSelect(selectId = "") {
   let doms = `<div class="fx-details-bigBox">`;
+  // 如果是捆绑属性方式
+  if (combination_type === 2) {
+    let suitDom = '<div class=suit-title>Suit:</div><div class="suit-box">';
+    suitarr.forEach((item, index) => {
+      suitDom += `
+      <div class=suit-item id=${item.key}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+    `;
+    });
+    suitDom = suitDom + "</div>";
+    doms = suitDom + doms;
+  }
+  if (Array.isArray(arr) && arr.length > 0) {
+    arr.forEach((item, index) => {
+      let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
+      doms += `
+        <div class="fx-detailsBox" data-index="${index}">
+        <div class="fx-leftImg">
+            <img class="fx-leftImgSelf${index}" src="${img}" alt="" >
+        </div>
+        <div class="fx-rightBox">
+            <div class="fx-title" title="${item.title}">
+                ${item.title}
+            </div>
+            <div class="selectBoxs">
+             ${item.variant_attrs.reduce((prev, currents, indexs) => {
+               return (
+                 prev +
+                 `<div class="selectBox${index} selectItemBox" data-value="${currents.name}:${currents.value[0]}">
+                 <div class="fx-select" id="fx-select-${index}${indexs}"> 
+                ${currents.name}:${currents.value[0]}               
+                 </div>
+                 <div class="fx-list" id="${index}${indexs}">
+                    ${currents.value.reduce((prev, current) => {
+                      return (
+                        prev +
+                        `
+                      <div class="fx-listItem" title="${currents.name}:${current}" key="${index}${indexs}">${currents.name}:${current}</div>
+                      `
+                      );
+                    }, "")}
+                  </div>
+              </div>
+              `
+               );
+             }, "")}
+            </div>
+        </div>
+    </div>
+        `;
+    });
+  }
+  doms + "</div>";
+  // 渲染详情展示页面
+  if (theme === "vogue") {
+    // 渲染详情展示页面
+    $(".product_single_price").after(doms);
+    $(".product_single .input_attrs_box").remove();
+  }
+  // 根据主题 挂载在不同的dom上
+  if (theme === "default") {
+    // Basic 主题
+    $(".deploy__price").after(doms);
+    $(".deploy__line").remove();
+    // 屏蔽购物车按钮
+    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
+  }
+  // 布局是否横向排列
+  if (custormStyleConfig.product_card_style === 2) {
+    $(".fx-detailsBox").addClass("fx-detailsBox-transverse");
+    $(".fx-details-bigBox").addClass("fx-details-bigBox-flex");
+    $(".fx-leftImg").addClass("fx-leftImg-transverse");
+    $(".fx-rightBox").addClass("fx-rightBox-transverse");
+    $(".fx-title").addClass("fx-title-transverse");
+  } else {
+    $(".fx-details-bigBox").css({ display: "block" });
+  }
+  $(".product_single .input_attrs_box").remove();
+  // 自定义下拉框逻辑
+  custormSelect(selectId, 2);
+  // 判断是否隐藏商品属性
+  judgeGoodsIsHidden();
+  // 判断是否能出售
+  checkSell();
+  return;
+}
+// 下拉属性组合方式渲染
+function selectPropertyCombination(selectId = "") {
+  let doms = `<div class="fx-details-bigBox">`;
+  // 如果是捆绑属性方式
+  if (combination_type === 2) {
+    let suitDom = '<div class=suit-title>Suit:</div><div class="suit-box">';
+    suitarr.forEach((item, index) => {
+      suitDom += `
+        <div class=suit-item id=${item.key}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+      `;
+    });
+    suitDom = suitDom + "</div>";
+    doms = suitDom + doms;
+  }
   // 处理属性组合下拉框渲染数据
   propertyCombination(arr);
   if (Array.isArray(arr) && arr.length > 0) {
@@ -5078,7 +5110,7 @@ function selectPropertyCombination() {
     $(".fx-details-bigBox").css({ display: "block" });
   }
   // 自定义下拉框逻辑
-  custormSelect();
+  custormSelect(selectId, 1);
   // 判断是否隐藏商品属性
   judgeGoodsIsHidden();
   // 判断是否能出售
@@ -5086,7 +5118,10 @@ function selectPropertyCombination() {
   return;
 }
 // 自定义下拉框逻辑
-function custormSelect() {
+function custormSelect(selectId, type) {
+  if (combination_type === 2) {
+    suitClick(type, selectId);
+  }
   // 自定义下拉框逻辑
   $(".fx-select").on("click", (event) => {
     $("body").append(`<div class="fx-mask">mask</div>`);
@@ -5140,12 +5175,13 @@ function judgeGoodsIsHidden() {
 }
 // 判断是否还能在售卖
 function checkSell(type) {
-  console.log("checksell 执行力");
+  console.log("checksell执行了");
   // type 为 tile 说明为平铺的方式
   // 购物车参数对象
   let params = [];
   for (let i = 0; i < arr.length; i++) {
     let str = "";
+    // tile 代表平铺方式  获取选择的属性 赋值给str
     if (type === "tile") {
       $(".fx-tile-propertyBox" + i).each((index, dom) => {
         let val = $(dom).attr("data-value");
@@ -5160,35 +5196,61 @@ function checkSell(type) {
     // 去掉空格
     str = str.replace('"', "").split(" ").join("");
     let obj = {};
-    // 如果没有属性
+    // 如果没有variants属性
     if (arr[i].variants.length === 0) {
+      console.log("没有variants属性的商品对象信息", arr[i]);
       obj = { product_id: arr[i].ID, stock: arr[i].stock };
+      if (combination_type === 2) {
+        obj = { product_id: arr[i].ID, stock: arr[i].stock, number: arr[i].number, sale_price: arr[i].sale_price };
+      }
       params.push(obj);
+      // 继续下一轮循环
       continue;
     }
-    let arrId = indexOf(arr[i].variants, str);
+    let arrId = indexOf(arr[i].variants, str); // 所选的属性（str） 没有在变种数组里面对应上
     // 属性如果没有找到
     if (arrId === -1) {
       obj = { product_id: arr[i].ID, stock: 0 };
+      if (combination_type === 2) {
+        obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0 };
+      }
       params.push(obj);
+      // 继续下一轮循环
       continue;
     }
-    // 得到商品id和变种id
+    // 属性在变种数组里面找到了  得到商品id和变种id以及价格等需要的数据
+    console.log("有variants属性的商品对象信息", arr[i]);
     let product_id = arr[i].ID;
     let variant_id = arr[i]["variants"][arrId].ID;
     let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
     let img = arr[i]["variants"][arrId].image || `${ASSET_ENDPOINT}/default.png`;
     obj = { product_id, variant_id, stock, imgLink: img };
+    if (combination_type === 2) {
+      obj = {
+        product_id,
+        variant_id,
+        stock,
+        imgLink: img,
+        number: arr[i].number,
+        sale_price: arr[i]["variants"][arrId].sale_price,
+      };
+    }
     // 如果不存在变种id 删除这个字段
     if (!obj.variant_id) {
       delete obj.variant_id;
     }
     params.push(obj);
   }
-  // 数量默认为1
+  // 数量默认为配置时 指定的最低件数
   params.forEach((item) => {
     item.quantity = condition_num;
   });
+  // 捆绑属性时，为输入的number数量
+  if (combination_type === 2) {
+    params.forEach((item) => {
+      item.quantity = item.number;
+    });
+  }
   // stockIsNull 为true说明有stock（库存） 为0的商品，不能在售卖，按钮变成sold out;
   let stockIsNull =
     params.filter((item) => {
@@ -5198,13 +5260,58 @@ function checkSell(type) {
   // params.forEach((itemobj, index) => {
   //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
   // });
-  console.log("加入购物车数据", stockIsNull, params);
+  // 捆绑属性时，总共价格的计算，并渲染到页面上
+  if (combination_type === 2) {
+    // 总价初始化
+    totalPrice = 0;
+    params.forEach((item) => {
+      totalPrice += item.sale_price * item.number;
+    });
+    // (1--百分比减扣,2--一口价,3--固定减扣)
+    if (goodsSaleType === 1) {
+      totalPrice = (totalPrice * goodsDiscount) / 100;
+    }
+    if (goodsSaleType === 2) {
+      totalPrice = goodsDiscount;
+    }
+    if (goodsSaleType === 3) {
+      totalPrice = totalPrice - goodsDiscount;
+    }
+    // 替换价格
+    if (document.querySelector(".money")) {
+      if (theme === "vogue") {
+        priceSymbolString = document.querySelector(".money").childNodes[0].innerHTML;
+        priceSymbolEnd = $(".money span").last().text();
+        $(".money").replaceWith(
+          `<span class="money secondary_title price_text"><span>${priceSymbolString}</span> ${totalPrice}<span> ${priceSymbolEnd}</span></span>`
+        );
+      }
+    }
+    if (theme === "default") {
+      $(".deploy--center .deploy__title ").after(
+        `<span style="font-size: 18px;" class="price_text">$ ${totalPrice}</span>`
+      );
+      $(".deploy--center .deploy__price  ").remove();
+    }
+  }
+  console.log("加入购物车数据以及总价", stockIsNull, params, totalPrice);
   // 判断渲染的加入购物车按钮
   AddCartButtonStyle(stockIsNull, params);
 }
-// -------------------------------------pc端平铺方式------------------------
-function tileRender() {
+// -------------------------------------平铺方式渲染------------------------
+function tileRender(selectId = "") {
   let doms = `<div class="fx-details-bigBox">`;
+  // 如果是捆绑属性方式
+  if (combination_type === 2) {
+    let suitDom = '<div class=suit-title>Suit:</div><div class="suit-box">';
+    suitarr.forEach((item, index) => {
+      suitDom += `
+        <div class=suit-item id=${item.key}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+      `;
+    });
+    suitDom = suitDom + "</div>";
+    doms = suitDom + doms;
+  }
   // 处理平铺渲染数据
   propertyCombination(arr);
   if (Array.isArray(arr) && arr.length > 0) {
@@ -5212,27 +5319,28 @@ function tileRender() {
       let img = item?.image ? item?.image : `${ASSET_ENDPOINT}/default.png`;
       if (item.attrs_string.length > 0) {
         doms += `
-                <div class="fx-tile-everyItem" data-index="${index}">
-                  <div class="fx-tile-everyItem-leftImg">
-                      <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
-                  </div>
-                  <div class="fx-tile-rightBox">
-                    <div class="fx-tile-goods-title" title="${item?.title}">
-                        ${item?.title}
-                    </div>
-                    <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${item.attrs_string[0]}'>
-                      ${item.attrs_string.reduce((prev, currents, indexs) => {
-                        return (
-                          prev +
-                          `
-                            <div class="fx-tile-propertyBox-item" id="${index}${indexs}" data-value="${currents}" title="${currents}" data-keys="${index}" key="${indexs}">${currents}</div>
-                            `
-                        );
-                      }, "")}
-                    </div>
-                  </div>
-                </div>
-                `;
+          <div class="fx-tile-everyItem" data-index="${index}">
+            <div class="fx-tile-everyItem-leftImg">
+                <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
+            </div>
+            <div class="fx-tile-rightBox">
+              <div class="fx-tile-goods-title" title="${item.title}">
+                  ${item.title}
+              </div>
+              ${combination_type === 2 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+              <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${item.attrs_string[0]}'>
+                ${item.attrs_string.reduce((prev, currents, indexs) => {
+                  return (
+                    prev +
+                    `
+                      <div class="fx-tile-propertyBox-item" id="${index}${indexs}" data-value="${currents}" title="${currents}" data-keys="${index}" key="${indexs}">${currents}</div>
+                      `
+                  );
+                }, "")}
+              </div>
+            </div>
+          </div>
+          `;
       } else {
         doms += `
                 <div class="fx-tile-everyItem" data-index="${index}">
@@ -5267,16 +5375,20 @@ function tileRender() {
     $(".addcart").css({ visibility: "hidden", positon: "absolute" });
   }
   // 平铺自定义选择逻辑
-  tileCustomSelection();
+  tileCustomSelection(selectId);
 }
-// 平铺自定义选择逻辑
-function tileCustomSelection() {
+// 平铺自定义选择逻辑 以及 combination_type为2时，suit点击
+function tileCustomSelection(selectId) {
   // 默认给第一个选中
   $(".fx-tile-propertyBox-item[key=0]").addClass("fx-tile-propertyBox-item-checked");
   let color = $("#app .price_text").css("color");
   let style = document.createElement("style");
-  style.innerHTML = `.fx-tile-propertyBox-item-checked{ background-color:${color} !important}`;
+  let styleString = `.fx-tile-propertyBox-item-checked{ background-color:${color} !important}`;
+  style.innerHTML = styleString;
   document.getElementsByTagName("head").item(0).appendChild(style);
+  if (combination_type === 2) {
+    suitClick(3, selectId);
+  }
   // 点击选择每一项
   $(".fx-tile-propertyBox-item").on("click", (event) => {
     // 获取当前点击的id
@@ -5288,6 +5400,63 @@ function tileCustomSelection() {
     $(`.fx-tile-propertyBox-item[data-keys=${keys}]`).removeClass("fx-tile-propertyBox-item-checked");
     $(`#${id}`).addClass("fx-tile-propertyBox-item-checked");
     checkSell("tile");
+  });
+}
+// 监听suit的点击 type  属性下拉 1，多个下拉2，平铺 3
+function suitClick(type, selectId) {
+  let colors = $("#app .price_text").css("color");
+  let styles = document.createElement("style");
+  // selectId 表示点击时选择的捆绑包id，重新渲染时，依然选中。
+  if (selectId) {
+    $(`.suit-item[id=${selectId}]`).addClass("suit-item-checked");
+  } else {
+    // 第一次进来，默认选中第一个，也是第一个商品渲染数据
+    $(".suit-item[data-keys=0]").addClass("suit-item-checked");
+  }
+  styleStrings = `.suit-item-checked{ background-color:${colors} !important;color:white}`;
+  styles.innerHTML = styleStrings;
+  document.getElementsByTagName("head").item(0).appendChild(styles);
+  // 监听suit点击
+  $(".suit-item").on("click", (event) => {
+    // 获取当前点击的id
+    let id = event.currentTarget.id;
+    let currentKey = $(`#${id}`).attr("data-key");
+    // 如果一个捆绑包重复点击 不执行重新渲染逻辑
+    console.log("suitKey和currentKey", suitKey, currentKey);
+    if (suitKey === currentKey) {
+      return;
+    }
+    suitKey = currentKey;
+    // 点击当前选中，移除同级已经选中的
+    $(`.suit-item`).removeClass("suit-item-checked");
+    $(`#${id}`).addClass("suit-item-checked");
+    // 找到对象的数据 重新渲染;
+    console.log("renderArr", suitarr);
+    let renderArr = suitarr.filter((item) => {
+      return item?.key === currentKey;
+    })[0].goodsRenderData;
+    goodsDiscount = renderArr[0].discount;
+    // 数据处理
+    arr = returnedDataProcessing(renderArr);
+    $(".fx-details-bigBox").remove();
+    $(".suit-title").remove();
+    $(".suit-box").remove();
+    // 渲染数据变化 重新执行渲染逻辑
+    if (type === 1) {
+      // 多个下拉渲染方式
+      multipleSelect(id);
+      checkSell();
+    }
+    if (type === 2) {
+      // 属性下拉渲染方式
+      selectPropertyCombination(id);
+      checkSell();
+    }
+    // 平铺方式重新渲染
+    if (type == 3) {
+      tileRender(id);
+      checkSell("tile");
+    }
   });
 }
 // -------------------------------------pc端平铺方式end------------------------
@@ -5586,6 +5755,10 @@ function jumpTocart(params) {
                 let hash = result[0].hash; // 购物车hash
                 let code = result[1].data.code; // 创建优惠卷的code码
                 let deleteCode = res.coupons["cart discount"] ? res.coupons["cart discount"].code : ""; // 删除优惠卷的code码
+                // 购物车不存在优惠码code 去加入购物车成功接口获取 判断是否存在
+                if (!deleteCode) {
+                  deleteCode = result[0].coupons["cart discount"] ? result[0].coupons["cart discount"].code : "";
+                }
                 // 删除优惠卷
                 if (deleteCode) {
                   // 调用删除优惠卷接口
@@ -5598,8 +5771,8 @@ function jumpTocart(params) {
                     .then((response) => response.json())
                     .then((data) => {
                       if (hash && code) {
-                          // 使用优惠卷
-                          useCoupon();
+                        // 使用优惠卷
+                        useCoupon();
                       } else if (hash) {
                         window.location.href = url;
                       }
@@ -5630,7 +5803,7 @@ function jumpTocart(params) {
                       $(".product_qty_box .add").off();
                       $(".product_qty_box .subtract").off();
                       let url = origin + "/cart";
-                        window.location.href = url;
+                      window.location.href = url;
                     });
                 }
               }
@@ -6030,6 +6203,10 @@ function returnedDataProcessing(arrData) {
     obj.stock = item.stock;
     obj.title = item.title;
     obj.image = item.image;
+    obj.number = item.number;
+    obj.sale_price = item.price;
+    // obj.discount = item.discount;
+    // obj.key = item.key;
     newArrData.push(obj);
   });
   let newArrData2 = JSON.parse(JSON.stringify(newArrData));
@@ -6037,8 +6214,8 @@ function returnedDataProcessing(arrData) {
   newArrData.forEach((item, index) => {
     item.variants.forEach((item2, index2) => {
       let obj = {};
-      const { ID, attrs_string, image, attrs, stock, sale_price } = item2;
-      obj = { ID, attrs_string, image, attrs, stock, sale_price };
+      const { ID, attrs_string, image, attrs, stock, price: sale_price } = item2;
+      obj = { ID, attrs_string, image, attrs, stock, sale_price: Number(sale_price) };
       newArrData2[index].variants[index2] = obj;
     });
   });
@@ -6053,6 +6230,7 @@ function returnedDataProcessing(arrData) {
   let newArrData3 = JSON.parse(JSON.stringify(newArrData2));
   newArrData2.forEach((item3, index3) => {
     if (item3.variant_attrs.length > 0) {
+      // arrtsArr 所有属性集合在一起的数组 只在这一个函数里面做数据处理使用
       let arrtsArr = item3.variant_attrs.map((items) => {
         return items.value;
       });
@@ -6065,6 +6243,7 @@ function returnedDataProcessing(arrData) {
     if (item3.variants.length > 0) {
       item3.variants.sort(handle("sale_price"));
       item3.variants.forEach((item4, index4) => {
+        // filterArr 这一条数据所选择属性的数组集合 如['red', 's']
         let filterArr = [];
         filterArr = item4.attrs.map((item5) => {
           return item5.value;
@@ -6121,17 +6300,7 @@ function returnedDataProcessing(arrData) {
       }
     });
   }
-  // newArrData4.forEach((item11, index11) => {
-  //   // 库存为0的放在最后
-  //   item11.variants.map((item10, index10) => {
-  //     if (!item10.stock || item10.stock < 1) {
-  //       newArrData4[index11].variants.push(item11.variants[index10]);
-  //       newArrData4[index11].variants.splice(index11, 1);
-  //     }
-  //   });
-  // });
-
-  // console.log("newArrData4",newArrData4)
+  console.log("第一次处理过后的数据", newArrData4);
   return newArrData4;
 }
 // 属性的排列组合
@@ -6215,7 +6384,7 @@ function propertyCombination(array) {
       itemss.attrs_string = Array.from(result);
     }
   });
-
+  // console.log("平铺和属性组合下拉框处理过后的数据", arr3);
   arr = arr3;
 }
 // 详情页的插入自己写的css(纯原生js)
