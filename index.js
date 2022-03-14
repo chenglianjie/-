@@ -4787,6 +4787,7 @@ const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
+// const ASSET_ENDPOINT = "https://test.com";
 let arr = []; // combo详情数组
 let comboId = ""; // comboId
 let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连续频繁点击
@@ -4801,6 +4802,7 @@ let theme = window.current_theme || window.localStorage.getItem("current_theme")
 let isTakeDown = false; // 是否下架
 let combination_type = 1; // 1 捆绑商品combo 2 捆绑属性combo
 let suitarr = []; // 捆绑属性名称渲染
+let selectSuit = []; // 选中的捆绑属性包
 let suitKey = ""; // 捆绑属性 combination_type 为2时选择的combo组合key;
 let totalPrice = 0; // combination_type 为2 计算选中商品的总价格
 let goodsSaleType = ""; // 商品优惠类型 (1--百分比减扣,2--一口价,3--固定减扣)
@@ -4874,6 +4876,7 @@ function getDataAndInsertHtml() {
         goodsSaleType = res.data.comboInfo.sale_type;
         suitarr = res.data.attribute.detaile_page_render_data;
         suitKey = res.data.attribute.detaile_page_render_data[0].key;
+        selectSuit = res.data.attribute.detaile_page_render_data[0];
         goodsDiscount = res.data.attribute.detaile_page_render_data[0].discount;
         arr = returnedDataProcessing(res.data.attribute.detaile_page_render_data[0].goodsRenderData);
       }
@@ -4937,7 +4940,9 @@ function multipleSelect(selectId = "") {
       <div class=suit-item id=${item.key}  data-keys=${index} data-key=${item.key}>${item.name}</div>
     `;
     });
-    suitDom = suitDom + "</div>";
+    suitDom =
+      suitDom +
+      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitCloseIcon.png'></span>`;
     doms = suitDom + doms;
   }
   if (Array.isArray(arr) && arr.length > 0) {
@@ -5025,7 +5030,9 @@ function selectPropertyCombination(selectId = "") {
         <div class=suit-item id=${item.key}  data-keys=${index} data-key=${item.key}>${item.name}</div>
       `;
     });
-    suitDom = suitDom + "</div>";
+    suitDom =
+      suitDom +
+      "</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitCloseIcon.png'></span>";
     doms = suitDom + doms;
   }
   // 处理属性组合下拉框渲染数据
@@ -5309,7 +5316,9 @@ function tileRender(selectId = "") {
         <div class=suit-item id=${item.key}  data-keys=${index} data-key=${item.key}>${item.name}</div>
       `;
     });
-    suitDom = suitDom + "</div>";
+    suitDom =
+      suitDom +
+      "</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitCloseIcon.png'></span>";
     doms = suitDom + doms;
   }
   // 处理平铺渲染数据
@@ -5416,6 +5425,22 @@ function suitClick(type, selectId) {
   styleStrings = `.suit-item-checked{ background-color:${colors} !important;color:white}`;
   styles.innerHTML = styleStrings;
   document.getElementsByTagName("head").item(0).appendChild(styles);
+  // 判断是否展开或收起
+  if (suitarr.length > 5) {
+    $(".suit-box-open").addClass("suit-box-open-mobile");
+    $(".suit-box-open").on("click", () => {
+      console.log("我点击了 open");
+      $(".suit-box").css({ "max-height": "initial", overflow: "auto" });
+      $(".suit-box-close").addClass("suit-box-open-mobile");
+      $(".suit-box-open").css({ display: "none" });
+      $(".suit-box-close").css({ display: "block" });
+    });
+    $(".suit-box-close").on("click", () => {
+      $(".suit-box-close").css({ display: "none" });
+      $(".suit-box-open").css({ display: "block" });
+      $(".suit-box").css({ "max-height": "104px", overflow: "hidden" });
+    });
+  }
   // 监听suit点击
   $(".suit-item").on("click", (event) => {
     // 获取当前点击的id
@@ -5431,10 +5456,15 @@ function suitClick(type, selectId) {
     $(`.suit-item`).removeClass("suit-item-checked");
     $(`#${id}`).addClass("suit-item-checked");
     // 找到对象的数据 重新渲染;
-    console.log("renderArr", suitarr);
+    console.log("suitarr", suitarr);
     let renderArr = suitarr.filter((item) => {
       return item?.key === currentKey;
     })[0].goodsRenderData;
+    console.log("renderArr", renderArr);
+    // 选中的捆绑属性包
+    selectSuit = suitarr.filter((item) => {
+      return item?.key === currentKey;
+    })[0];
     goodsDiscount = renderArr[0].discount;
     // 数据处理
     arr = returnedDataProcessing(renderArr);
@@ -5591,9 +5621,11 @@ function AddCartButtonStyle(stockIsNull, params) {
 }
 // 自定义购物车按钮点击函数
 function buttonOnchilk(params) {
-  params.forEach((item) => {
-    item.quantity = condition_num; // 数量至少为最低的件数
-  });
+  if (combination_type === 1) {
+    params.forEach((item) => {
+      item.quantity = condition_num; // 数量至少为最低的件数
+    });
+  }
   let paramsObj = {
     product: params,
   };
@@ -5604,13 +5636,23 @@ function buttonOnchilk(params) {
 // 添加商品到购物车
 function jumpTocart(params) {
   let newParams = JSON.parse(JSON.stringify(params));
-  console.log("newParams", newParams);
   newParams.product.forEach((item) => {
-    item.quantity = condition_num; // 数量至少为最低的件数
+    // item.quantity = condition_num; // 数量至少为最低的件数
+    // 删除无用的字段
+    if (item.imgLink) {
+      delete item.imgLink;
+    }
+    if (item.number) {
+      delete item.number;
+    }
     if (item.stock) {
       delete item.stock;
     }
+    if (item.sale_price) {
+      delete item.sale_price;
+    }
   });
+  console.log("最终传入加入购物车的数据Params", newParams);
   if (canClickAddButton) {
     // 添加loading状态
     $(".fx-add-button").removeClass("transition-main");
@@ -5627,6 +5669,10 @@ function jumpTocart(params) {
     const shop = window.location.host || "'powder70.hotishop.com'";
     // 创建优惠卷参数
     let createCouponObj = { id: comboId, cartInfo, shop };
+    if (combination_type === 2) {
+      createCouponObj = { id: comboId, cartInfo, shop, attribute: selectSuit };
+    }
+    console.log("传入的createCouponObj", createCouponObj);
     // 请求购物车接口
     fetch(`${origin}/api/store/cart`, {
       method: "GET", // or 'PUT'

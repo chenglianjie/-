@@ -1,6 +1,21 @@
 .suit-box {
   display: flex;
+  flex-wrap: wrap;
 }
+/* 展开和关闭 */
+.suit-box-close {
+  display: none;
+  cursor: pointer;
+}
+.suit-box-open {
+  display: none;
+  cursor: pointer;
+}
+.suit-icon-img {
+  position: relative;
+  top: -2px;
+}
+
 .suit-title {
   margin: 20px 0px;
   font-weight: 400;
@@ -11,6 +26,7 @@
   cursor: pointer;
   display: inline-block;
   border: 1px solid #d2d2d2;
+  margin-bottom: 20px;
   height: 32px;
   line-height: 22px;
   padding: 4px 18px;
@@ -286,6 +302,15 @@
 
 /* 横向样式 只在pc端生效 */
 @media screen and (min-width: 769px) {
+  /* 展开和关闭 */
+  .suit-box-close {
+    display: none !important;
+    cursor: pointer;
+  }
+  .suit-box-open {
+    display: none !important;
+    cursor: pointer;
+  }
   /* ------------------纵向下拉方式 css -------------------------------- */
   .fx-leftImg {
     width: 180px;
@@ -612,6 +637,7 @@
   font-size: 16px;
   font-weight: 600;
 }
+/* 移动端样式 */
 @media screen and (max-width: 768px) {
   .fx-checkout-inlineCarts {
     width: 100% !important;
@@ -629,5 +655,17 @@
     left: 0px;
     bottom: -16px;
     z-index: 999 !important;
+  }
+  .suit-box {
+    max-height: 104px;
+    overflow: hidden;
+  }
+  /* 收起 */
+  .suit-box-close-mobile {
+    display: block;
+  }
+  /* 展开 */
+  .suit-box-open-mobile {
+    display: block;
   }
 }
