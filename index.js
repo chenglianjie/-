@@ -4899,8 +4899,38 @@ function getStyleConfig() {
       custormStyleConfig = res.data;
       // 获取自定义样式成功后，执行自定义渲染商品详情页
       if (res.code === 200) {
-        // 商品详情渲染函数
-        pcComboDetailsRender();
+        // 根据主题 挂载在不同的dom上
+        if (theme === "default") {
+          if (!document.querySelector(".deploy__price")) {
+            let renterTimer = window.setInterval(() => {
+              if (document.querySelector(".deploy__price")) {
+                if (!document.querySelector(".fx-details-bigBox")) {
+                  // 商品详情渲染函数
+                  pcComboDetailsRender();
+                  window.clearInterval(renterTimer);
+                }
+              }
+            }, 600);
+          } else {
+            // 商品详情渲染函数
+            pcComboDetailsRender();
+          }
+        }
+        if (theme === "vogue") {
+          if (!document.querySelector(".product_single_price")) {
+            let renterTimer = window.setInterval(() => {
+              console.log("我进入到定时器了", document.querySelector(".product_single_price"));
+              if (document.querySelector(".product_single_price")) {
+                window.clearInterval(renterTimer);
+                // 商品详情渲染函数
+                pcComboDetailsRender();
+              }
+            }, 600);
+          } else {
+            // 商品详情渲染函数
+            pcComboDetailsRender();
+          }
+        }
       }
     });
 }
@@ -4987,46 +5017,16 @@ function multipleSelect(selectId = "") {
   doms + "</div>";
   // 根据主题 挂载在不同的dom上
   if (theme === "default") {
-    if (!document.querySelector(".deploy__price")) {
-      let renterTimer = window.setInterval(() => {
-        if (document.querySelector(".deploy__price")) {
-          if (!document.querySelector(".fx-details-bigBox")) {
-            // Basic 主题
-            $(".deploy__price").after(doms);
-            $(".deploy__line").remove();
-            // 屏蔽购物车按钮
-            $(".addcart").css({ visibility: "hidden", positon: "absolute" });
-          }
-        } else {
-          window.clearInterval(renterTimer);
-        }
-      }, 600);
-    } else {
-      // Basic 主题
-      $(".deploy__price").after(doms);
-      $(".deploy__line").remove();
-      // 屏蔽购物车按钮
-      $(".addcart").css({ visibility: "hidden", positon: "absolute" });
-    }
+    // Basic 主题
+    $(".deploy__price").after(doms);
+    $(".deploy__line").remove();
+    // 屏蔽购物车按钮
+    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
   }
   if (theme === "vogue") {
-    if (!document.querySelector(".product_single_price")) {
-      let renterTimer = window.setInterval(() => {
-        if (document.querySelector(".product_single_price")) {
-          if (!document.querySelector(".fx-details-bigBox")) {
-            // 渲染详情展示页面
-            $(".product_single_price").after(doms);
-            $(".product_single .input_attrs_box").remove();
-          }
-        } else {
-          window.clearInterval(renterTimer);
-        }
-      }, 600);
-    } else {
-      // 渲染详情展示页面
-      $(".product_single_price").after(doms);
-      $(".product_single .input_attrs_box").remove();
-    }
+    // 渲染详情展示页面
+    $(".product_single_price").after(doms);
+    $(".product_single .input_attrs_box").remove();
   }
   // 布局是否横向排列
   if (custormStyleConfig.product_card_style === 2) {
@@ -5120,47 +5120,18 @@ function selectPropertyCombination(selectId = "") {
   }
   doms + "</div>";
   // 根据主题 挂载在不同的dom上
+  // 根据主题 挂载在不同的dom上
   if (theme === "default") {
-    if (!document.querySelector(".deploy__price")) {
-      let renterTimer = window.setInterval(() => {
-        if (document.querySelector(".deploy__price")) {
-          if (!document.querySelector(".fx-details-bigBox")) {
-            // Basic 主题
-            $(".deploy__price").after(doms);
-            $(".deploy__line").remove();
-            // 屏蔽购物车按钮
-            $(".addcart").css({ visibility: "hidden", positon: "absolute" });
-          }
-        } else {
-          window.clearInterval(renterTimer);
-        }
-      }, 600);
-    } else {
-      // Basic 主题
-      $(".deploy__price").after(doms);
-      $(".deploy__line").remove();
-      // 屏蔽购物车按钮
-      $(".addcart").css({ visibility: "hidden", positon: "absolute" });
-    }
+    // Basic 主题
+    $(".deploy__price").after(doms);
+    $(".deploy__line").remove();
+    // 屏蔽购物车按钮
+    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
   }
   if (theme === "vogue") {
-    if (!document.querySelector(".product_single_price")) {
-      let renterTimer = window.setInterval(() => {
-        if (document.querySelector(".product_single_price")) {
-          if (!document.querySelector(".fx-details-bigBox")) {
-            // 渲染详情展示页面
-            $(".product_single_price").after(doms);
-            $(".product_single .input_attrs_box").remove();
-          }
-        } else {
-          window.clearInterval(renterTimer);
-        }
-      }, 600);
-    } else {
-      // 渲染详情展示页面
-      $(".product_single_price").after(doms);
-      $(".product_single .input_attrs_box").remove();
-    }
+    // 渲染详情展示页面
+    $(".product_single_price").after(doms);
+    $(".product_single .input_attrs_box").remove();
   }
   // 判断布局是否横向排列
   if (custormStyleConfig.product_card_style === 2) {
@@ -5431,51 +5402,18 @@ function tileRender(selectId = "") {
   doms + "</div>";
   // 根据主题 挂载在不同的dom上
   if (theme === "default") {
-    if (!document.querySelector(".deploy__price")) {
-      let renterTimer = window.setInterval(() => {
-        if (document.querySelector(".deploy__price")) {
-          if (!document.querySelector(".fx-details-bigBox")) {
-            // Basic 主题
-            $(".deploy__price").after(doms);
-            $(".deploy__line").remove();
-            // 屏蔽购物车按钮
-            $(".addcart").css({ visibility: "hidden", positon: "absolute" });
-          }
-        } else {
-          window.clearInterval(renterTimer);
-        }
-      }, 600);
-    } else {
-      // Basic 主题
-      $(".deploy__price").after(doms);
-      $(".deploy__line").remove();
-      // 屏蔽购物车按钮
-      $(".addcart").css({ visibility: "hidden", positon: "absolute" });
-    }
+    // Basic 主题
+    $(".deploy__price").after(doms);
+    $(".deploy__line").remove();
+    // 屏蔽购物车按钮
+    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
   }
   if (theme === "vogue") {
-    if (!document.querySelector(".product_single_price")) {
-      let renterTimer = window.setInterval(() => {
-        if (document.querySelector(".product_single_price")) {
-          if (!document.querySelector(".fx-details-bigBox")) {
-            // 渲染详情展示页面
-            $(".product_single_price").after(doms);
-            $(".product_single .input_attrs_box").remove();
-            // 平铺自定义选择逻辑
-            tileCustomSelection(selectId);
-          }
-        } else {
-          window.clearInterval(renterTimer);
-        }
-      }, 600);
-    } else {
-      // 渲染详情展示页面
-      $(".product_single_price").after(doms);
-      $(".product_single .input_attrs_box").remove();
-      // 平铺自定义选择逻辑
-      tileCustomSelection(selectId);
-    }
+    // 渲染详情展示页面
+    $(".product_single_price").after(doms);
+    $(".product_single .input_attrs_box").remove();
   }
+  tileCustomSelection(selectId);
 }
 // 平铺自定义选择逻辑 以及 combination_type为2时，suit点击
 function tileCustomSelection(selectId) {
