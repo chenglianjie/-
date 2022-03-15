@@ -5289,8 +5289,10 @@ function checkSell(type) {
       if (theme === "vogue") {
         priceSymbolString = document.querySelector(".money").childNodes[0].innerHTML;
         priceSymbolEnd = $(".money span").last().text();
+        // console.log("价格符号", priceSymbolString, priceSymbolEnd);
+        // <span> ${priceSymbolEnd}</span>
         $(".money").replaceWith(
-          `<span class="money secondary_title price_text"><span>${priceSymbolString}</span> ${totalPrice}<span> ${priceSymbolEnd}</span></span>`
+          `<span class="money secondary_title price_text"><span>${priceSymbolString}</span> ${totalPrice}</span>`
         );
       }
     }
