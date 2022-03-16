@@ -5328,7 +5328,7 @@ function checkSell(type) {
     }
     if (theme === "default") {
       $(".deploy--center .deploy__title ").after(
-        `<span style="font-size: 18px;" class="price_text">$ ${totalPrice}</span>`
+        `<span style="font-size: 18px;" class="price_text fx-price_text">$ ${totalPrice}</span>`
       );
       $(".deploy--center .deploy__price  ").remove();
     }

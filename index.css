@@ -1,3 +1,6 @@
+.fx-price_text {
+  margin-bottom: 20px;
+}
 .suit-box {
   display: flex;
   flex-wrap: wrap;
@@ -17,7 +20,7 @@
 }
 
 .suit-title {
-  margin: 20px 0px;
+  margin-bottom: 20px;
   font-weight: 400;
   font-size: 14px;
   color: #2f2f2f;
@@ -36,9 +39,12 @@
   white-space: nowrap;
   max-width: 500px;
 }
+.product_single_price_text {
+  margin-bottom: 20px !important;
+}
 .fx-details-bigBox {
   width: 100%;
-  margin-top: 20px;
+  /* margin-top: 20px; */
 }
 .selectBox {
   margin-bottom: 20px;
