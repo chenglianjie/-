@@ -4963,7 +4963,7 @@ function multipleSelect(selectId = "") {
   let doms = `<div class="fx-details-bigBox">`;
   // 如果是捆绑属性方式
   if (combination_type === 2) {
-    let suitDom = '<div class=suit-title>Suit:</div><div class="suit-box">';
+    let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
       <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
@@ -5052,7 +5052,7 @@ function selectPropertyCombination(selectId = "") {
   let doms = `<div class="fx-details-bigBox">`;
   // 如果是捆绑属性方式
   if (combination_type === 2) {
-    let suitDom = '<div class=suit-title>Suit:</div><div class="suit-box">';
+    let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
         <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
@@ -5313,6 +5313,7 @@ function checkSell(type) {
     if (goodsSaleType === 3) {
       totalPrice = totalPrice - goodsDiscount;
     }
+    totalPrice = totalPrice.toFixed(2);
     // 替换价格
     if (document.querySelector(".money")) {
       if (theme === "vogue") {
@@ -5341,7 +5342,7 @@ function tileRender(selectId = "") {
   let doms = `<div class="fx-details-bigBox">`;
   // 如果是捆绑属性方式
   if (combination_type === 2) {
-    let suitDom = '<div class=suit-title>Suit:</div><div class="suit-box">';
+    let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
         <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
