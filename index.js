@@ -4782,8 +4782,8 @@ script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
 // 字段定义
-// const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // stage 环境
-const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
+const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
+// const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
@@ -4986,6 +4986,7 @@ function multipleSelect(selectId = "") {
             <div class="fx-title" title="${item.title}">
                 ${item.title}
             </div>
+            ${combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
             <div class="selectBoxs">
              ${item.variant_attrs.reduce((prev, currents, indexs) => {
                return (
@@ -5078,6 +5079,7 @@ function selectPropertyCombination(selectId = "") {
             <div class="fx-title" title=${item.title}>
                 ${item.title}
             </div>
+            ${combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
             <div class="selectBoxs">
              <div class="selectBox${index} selectItemBox" data-value="${item.attrs_string[0]}">
               <div class="fx-select" id="fx-select-${index}"> 
@@ -5108,6 +5110,9 @@ function selectPropertyCombination(selectId = "") {
                 <div class="fx-title" title=${item.title}>
                     ${item.title}
                 </div>
+                ${
+                  combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""
+                }
                 <div class="selectBoxs">
                  <div class="selectBox${index} selectItemBox" data-value="">
                  </div>
@@ -5327,7 +5332,7 @@ function checkSell(type) {
       }
     }
     if (theme === "default") {
-      $(".deploy--center .deploy__title ").after(
+      $(".commodityright .deploy .deploy__title ").after(
         `<span style="font-size: 18px;" class="price_text fx-price_text">$ ${totalPrice}</span>`
       );
       $(".deploy--center .deploy__price  ").remove();
@@ -5355,6 +5360,7 @@ function tileRender(selectId = "") {
   }
   // 处理平铺渲染数据
   propertyCombination(arr);
+  console.log("平铺渲染combination_type", combination_type, arr);
   if (Array.isArray(arr) && arr.length > 0) {
     arr.forEach((item, index) => {
       let img = item?.image ? item?.image : `${ASSET_ENDPOINT}/default.png`;
@@ -5368,7 +5374,7 @@ function tileRender(selectId = "") {
               <div class="fx-tile-goods-title" title="${item.title}">
                   ${item.title}
               </div>
-              ${combination_type === 2 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+              ${combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
               <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${item.attrs_string[0]}'>
                 ${item.attrs_string.reduce((prev, currents, indexs) => {
                   return (
@@ -5392,6 +5398,11 @@ function tileRender(selectId = "") {
                     <div class="fx-tile-goods-title">
                         ${item?.title}
                     </div>
+                    ${
+                      combination_type === 2 && item.number > 1
+                        ? `<div class="fx-goods-number">x ${item.number}</div>`
+                        : ""
+                    }
                     <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value="">
                     </div>
                   </div>
@@ -5740,7 +5751,7 @@ function jumpTocart(params) {
                   if (item2.variant_id === item3.variant.ID) {
                     let stock = item2.stock;
                     let quantity = item2.quantity + item3.quantity;
-                    console.log("stock,quantity", stock, quantity);
+                    console.log("不存在变种id stock 和加入数量购物车数量对比quantity stock", quantity, stock);
                     if (quantity > stock) {
                       flag = false;
                       num = stock;
@@ -5752,6 +5763,7 @@ function jumpTocart(params) {
                   console.log("进入else了");
                   let stock = item2.stock;
                   let quantity = item2.quantity + item3.quantity;
+                  console.log("不存在变种id stock 和加入数量购物车数量对比quantity stock", quantity, stock);
                   if (quantity > stock) {
                     flag = false;
                     num = stock;
@@ -5761,9 +5773,10 @@ function jumpTocart(params) {
             });
           });
         }
-        console.log("flag", flag);
+        console.log("判断购物车验证数量是否通过flag true为通过 false不通过", flag);
         if (!flag) {
-          let errorMsg = `You cannot add that amount to the cart — we have ${num} in stock and you already have ${num} in your cart`;
+          // let errorMsg = `You cannot add that amount to the cart — we have ${num} in stock and you already have ${num} in your cart`;
+          let errorMsg = `This product is out of stock`;
           let message = `<div class="fx-error-message fx-error-message2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
           $("body").append(message);
           $(".fx-add-button").removeClass("fx-add-button-loading");

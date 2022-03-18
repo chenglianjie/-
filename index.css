@@ -9,10 +9,12 @@
 .suit-box-close {
   display: none;
   cursor: pointer;
+  margin-bottom: 20px;
 }
 .suit-box-open {
   display: none;
   cursor: pointer;
+  margin-bottom: 20px;
 }
 .suit-icon-img {
   position: relative;
