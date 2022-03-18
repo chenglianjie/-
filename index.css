@@ -314,6 +314,9 @@
 
 /* 横向样式 只在pc端生效 */
 @media screen and (min-width: 769px) {
+  .suit-box {
+    height: auto !important;
+  }
   /* 展开和关闭 */
   .suit-box-close {
     display: none !important;
@@ -668,10 +671,10 @@
     bottom: -16px;
     z-index: 999 !important;
   }
-  .suit-box {
+  /* .suit-box {
     max-height: 104px;
     overflow: hidden;
-  }
+  } */
   /* 收起 */
   .suit-box-close-mobile {
     display: block;

@@ -5467,7 +5467,9 @@ function suitClick(type, selectId) {
   styles.innerHTML = styleStrings;
   document.getElementsByTagName("head").item(0).appendChild(styles);
   // 判断是否展开或收起
-  if (suitarr.length > 5) {
+  console.log("$(window).height() 高度", $(".suit-box").height());
+  if ($(".suit-box").height() > 110) {
+    $(".suit-box").css({ "max-height": "104px", overflow: "hidden" });
     $(".suit-box-open").addClass("suit-box-open-mobile");
     $(".suit-box-open").on("click", () => {
       console.log("我点击了 open");
