@@ -5335,7 +5335,7 @@ function checkSell(type) {
       $(".commodityright .deploy .deploy__title ").after(
         `<span style="font-size: 18px;" class="price_text fx-price_text">$ ${totalPrice}</span>`
       );
-      $(".deploy--center .deploy__price  ").remove();
+      $(".commodityright .deploy .deploy__price  ").remove();
     }
   }
   console.log("加入购物车数据以及总价", stockIsNull, params, totalPrice);
@@ -6174,7 +6174,7 @@ function requestCartAndCheckedCoupon() {
         return item.product_id;
       });
       let goodsInfo = Object.values(data.cart).map((item) => {
-        return { id: item.product_id, num: item.quantity };
+        return { id: item.product_id, num: item.quantity, skuIds: item.variation_id };
       });
       let skuIds = Object.values(data.cart).map((item) => {
         if (item.variation_id) {
