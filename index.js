@@ -5318,7 +5318,7 @@ function checkSell(type) {
     if (goodsSaleType === 3) {
       totalPrice = totalPrice - goodsDiscount;
     }
-    totalPrice = totalPrice.toFixed(2);
+    totalPrice = Number(totalPrice).toFixed(2);
     // 替换价格
     if (document.querySelector(".money")) {
       if (theme === "vogue") {
@@ -5332,10 +5332,10 @@ function checkSell(type) {
       }
     }
     if (theme === "default") {
-      $(".commodityright .deploy .deploy__title ").after(
-        `<span style="font-size: 18px;" class="price_text fx-price_text">$ ${totalPrice}</span>`
-      );
       $(".commodityright .deploy .deploy__price  ").remove();
+      $(".commodityright .deploy .deploy__title ").after(
+        `<span style="font-size: 18px;" class="price_text fx-price_text deploy__price">$ ${totalPrice}</span>`
+      );
     }
   }
   console.log("加入购物车数据以及总价", stockIsNull, params, totalPrice);
