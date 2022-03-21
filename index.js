@@ -4774,14 +4774,15 @@ function rewirteLog() {
 }
 // 日志是否清除
 // rewirteLog();
-// sentry 引入
+
+// ------------------------------------------------------sentry 引入-------------------------------------
 var script = document.createElement("script");
-// script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js"); // 正式上线url
-script.setAttribute("src", "https://js.sentry-cdn.com/e3ffbc96548a4db58a401a9cbbae68b8.min.js"); // 测试url
+// script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js"); // sentry正式上线url
+script.setAttribute("src", "https://js.sentry-cdn.com/e3ffbc96548a4db58a401a9cbbae68b8.min.js"); // sentry测试url
 script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
-// 字段定义
+// -----------------------------------------------------字段定义----------------------------------------------
 const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
 // const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
@@ -4803,14 +4804,14 @@ let combination_type = 1; // 1 捆绑商品combo 2 捆绑属性combo
 let suitarr = []; // 捆绑属性名称渲染
 let selectSuit = []; // 选中的捆绑属性包
 let suitKey = ""; // 捆绑属性 combination_type 为2时选择的combo组合key;
-let totalPrice = 0; // combination_type 为2 计算选中商品的总价格
+let totalPrice = 0; // combination_type为2时  计算选中商品的总价格
 let goodsSaleType = ""; // 商品优惠类型 (1--百分比减扣,2--一口价,3--固定减扣)
 let goodsDiscount = ""; // 商品优惠值
-// 脚本开始
+// ----------------------------------------------------------脚本开始----------------------------------------------
 $(function () {
   console.log("jq is readay", theme);
   let { pathname = "" } = window.location;
-  // 判断购物车是弹窗和侧边弹出的情况
+  // -------------------------------------------------------判断购物车是弹窗和侧边弹出的情况---------------------------
   if (theme === "vogue") {
     let cartTimerVogue = window.setInterval(() => {
       if (document.querySelector(".inlineCart")) {
@@ -4835,7 +4836,7 @@ $(function () {
       }
     }, 600);
   }
-  // -----------------------------商品详情页页面逻辑----------------------------
+  // --------------------------------------------------------商品详情页页面逻辑----------------------------
   if (pathname.indexOf("products") !== -1) {
     // 插入商品详情css
     appendCss();
@@ -5642,10 +5643,12 @@ function AddCartButtonStyle(stockIsNull, params) {
           disAbleValue = "Product has been discontinued";
         }
         if (!document.querySelector(".fx-disable-basic")) {
+          $(".basic—addToCartButton").remove();
           $(".fx-details-bigBox").after(disAbleButton);
         }
       } else {
         if (!document.querySelector(".basic—addToCartButton")) {
+          $(".fx-disable-basic").remove();
           $(".fx-details-bigBox").after(addButton);
         }
         $(".basic—addToCartButton").off();
