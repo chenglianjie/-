@@ -4783,8 +4783,8 @@ script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
 // -----------------------------------------------------字段定义----------------------------------------------
-const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
-// const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
+// const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
+const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
@@ -4987,7 +4987,7 @@ function multipleSelect(selectId = "") {
             <div class="fx-title" title="${item.title}">
                 ${item.title}
             </div>
-            ${combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+            ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
             <div class="selectBoxs">
              ${item.variant_attrs.reduce((prev, currents, indexs) => {
                return (
@@ -5080,7 +5080,7 @@ function selectPropertyCombination(selectId = "") {
             <div class="fx-title" title=${item.title}>
                 ${item.title}
             </div>
-            ${combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+            ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
             <div class="selectBoxs">
              <div class="selectBox${index} selectItemBox" data-value="${item.attrs_string[0]}">
               <div class="fx-select" id="fx-select-${index}"> 
@@ -5111,9 +5111,7 @@ function selectPropertyCombination(selectId = "") {
                 <div class="fx-title" title=${item.title}>
                     ${item.title}
                 </div>
-                ${
-                  combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""
-                }
+                ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
                 <div class="selectBoxs">
                  <div class="selectBox${index} selectItemBox" data-value="">
                  </div>
@@ -5241,9 +5239,21 @@ function checkSell(type) {
     // 如果没有variants属性
     if (arr[i].variants.length === 0) {
       console.log("没有variants属性的商品对象信息", arr[i]);
-      obj = { product_id: arr[i].ID, stock: arr[i].stock };
+      obj = {
+        product_id: arr[i].ID,
+        stock: arr[i].stock,
+        number: arr[i].number,
+        sale_price: arr[i].sale_price,
+        manage_stock: arr[i].manage_stock,
+      };
       if (combination_type === 2) {
-        obj = { product_id: arr[i].ID, stock: arr[i].stock, number: arr[i].number, sale_price: arr[i].sale_price };
+        obj = {
+          product_id: arr[i].ID,
+          stock: arr[i].stock,
+          number: arr[i].number,
+          sale_price: arr[i].sale_price,
+          manage_stock: arr[i].manage_stock,
+        };
       }
       params.push(obj);
       // 继续下一轮循环
@@ -5252,9 +5262,9 @@ function checkSell(type) {
     let arrId = indexOf(arr[i].variants, str); // 所选的属性（str） 没有在变种数组里面对应上
     // 属性如果没有找到
     if (arrId === -1) {
-      obj = { product_id: arr[i].ID, stock: 0 };
+      obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0, manage_stock: "yes" };
       if (combination_type === 2) {
-        obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0 };
+        obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0, manage_stock: "yes" };
       }
       params.push(obj);
       // 继续下一轮循环
@@ -5266,7 +5276,16 @@ function checkSell(type) {
     let variant_id = arr[i]["variants"][arrId].ID;
     let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
     let img = arr[i]["variants"][arrId].image || `${ASSET_ENDPOINT}/default.png`;
-    obj = { product_id, variant_id, stock, imgLink: img };
+    let manage_stock = arr[i]["variants"][arrId].manage_stock;
+    obj = {
+      product_id,
+      variant_id,
+      stock,
+      imgLink: img,
+      number: arr[i].number,
+      sale_price: arr[i]["variants"][arrId].sale_price,
+      manage_stock,
+    };
     if (combination_type === 2) {
       obj = {
         product_id,
@@ -5275,6 +5294,7 @@ function checkSell(type) {
         imgLink: img,
         number: arr[i].number,
         sale_price: arr[i]["variants"][arrId].sale_price,
+        manage_stock,
       };
     }
     // 如果不存在变种id 删除这个字段
@@ -5285,10 +5305,11 @@ function checkSell(type) {
   }
   // 数量默认为配置时 指定的最低件数
   params.forEach((item) => {
-    item.quantity = condition_num;
+    // item.quantity = condition_num;
+    item.quantity = item.number;
   });
   // 捆绑属性时，为输入的number数量
-  if (combination_type === 2) {
+  if (combination_type === 2 || combination_type === 1) {
     params.forEach((item) => {
       item.quantity = item.number;
     });
@@ -5296,6 +5317,9 @@ function checkSell(type) {
   // stockIsNull 为true说明有stock（库存） 为0的商品，不能在售卖，按钮变成sold out;
   let stockIsNull =
     params.filter((item) => {
+      if (item?.manage_stock === "no") {
+        return false;
+      }
       return item.stock <= 0 || item.quantity > item.stock;
     }).length > 0;
   // 根据不同的变种id 展示不同的图片
@@ -5303,7 +5327,7 @@ function checkSell(type) {
   //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
   // });
   // 捆绑属性时，总共价格的计算，并渲染到页面上
-  if (combination_type === 2) {
+  if (combination_type === 2 || combination_type === 1) {
     // 总价初始化
     totalPrice = 0;
     params.forEach((item) => {
@@ -5375,7 +5399,7 @@ function tileRender(selectId = "") {
               <div class="fx-tile-goods-title" title="${item.title}">
                   ${item.title}
               </div>
-              ${combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+              ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
               <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${item.attrs_string[0]}'>
                 ${item.attrs_string.reduce((prev, currents, indexs) => {
                   return (
@@ -5399,11 +5423,7 @@ function tileRender(selectId = "") {
                     <div class="fx-tile-goods-title">
                         ${item?.title}
                     </div>
-                    ${
-                      combination_type === 2 && item.number > 1
-                        ? `<div class="fx-goods-number">x ${item.number}</div>`
-                        : ""
-                    }
+                    ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
                     <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value="">
                     </div>
                   </div>
@@ -6287,6 +6307,7 @@ function returnedDataProcessing(arrData) {
     obj.image = item.image;
     obj.number = item.number;
     obj.sale_price = item.price;
+    obj.manage_stock = item.manage_stock;
     // obj.discount = item.discount;
     // obj.key = item.key;
     newArrData.push(obj);
@@ -6296,8 +6317,8 @@ function returnedDataProcessing(arrData) {
   newArrData.forEach((item, index) => {
     item.variants.forEach((item2, index2) => {
       let obj = {};
-      const { ID, attrs_string, image, attrs, stock, price: sale_price } = item2;
-      obj = { ID, attrs_string, image, attrs, stock, sale_price: Number(sale_price) };
+      const { ID, attrs_string, image, attrs, stock, price: sale_price, manage_stock } = item2;
+      obj = { ID, attrs_string, image, attrs, stock, sale_price: Number(sale_price), manage_stock };
       newArrData2[index].variants[index2] = obj;
     });
   });
