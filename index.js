@@ -5300,10 +5300,11 @@ function checkSell(type) {
     });
   }
   // stockIsNull 为true说明有stock（库存） 为0的商品，不能在售卖，按钮变成sold out;
-  let stockIsNull =
-    params.filter((item) => {
-      return item.stock <= 0 || item.quantity > item.stock;
-    }).length > 0;
+  //   let stockIsNull =
+  //     params.filter((item) => {
+  //       return item.stock <= 0 || item.quantity > item.stock;
+  //     }).length > 0;
+  let stockIsNull = false;
   // 根据不同的变种id 展示不同的图片
   // params.forEach((itemobj, index) => {
   //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
@@ -5800,6 +5801,7 @@ function jumpTocart(params) {
           }, 5000);
           canClickAddButton = true;
           $(".basic—addToCartButton").removeClass("basic—addToCartButton-loading");
+          $(".fx-add-button").removeClass("fx-add-button-loading");
           // $(".basic—addToCartButton").addClass("minor_button");
           // $(".basic—addToCartButton").addClass("el-button");
           return;
@@ -5849,6 +5851,7 @@ function jumpTocart(params) {
                 $("body").append(message);
                 $(".fx-add-button").removeClass("fx-add-button-loading");
                 $(".basic—addToCartButton").removeClass("basic—addToCartButton-loading");
+                $(".fx-add-button").removeClass("fx-add-button-loading");
                 setTimeout(() => {
                   $(".fx-error-message").remove();
                 }, 3000);
