@@ -4783,8 +4783,7 @@ script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
 // -----------------------------------------------------字段定义----------------------------------------------
-// const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
-const API_ENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
+const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
@@ -4799,6 +4798,9 @@ let custormStyleConfig = {
 let hideGoods = false; // 隐藏combo里面的商品详情展示
 let condition_num = 1; // 最低件数
 let theme = window.current_theme || window.localStorage.getItem("current_theme"); // 当前的主题
+if (!theme) {
+  theme = document.querySelector("#appjs") ? document.querySelector("#appjs").getAttribute("currentTheme") : "";
+}
 let isTakeDown = false; // 是否下架
 let combination_type = 1; // 1 捆绑商品combo 2 捆绑属性combo
 let suitarr = []; // 捆绑属性名称渲染
@@ -4856,7 +4858,7 @@ function getDataAndInsertHtml() {
     .then((response) => response.json())
     .then((res) => {
       console.log("combo详情接口数据", res);
-      if (res.code !== 200 && !res.data && !res.data.is_combo) {
+      if (res.code !== 200 || !res.data.is_combo) {
         console.error("combo详情接口错误,或者不是combo组合商品，脚本不在往下执行");
         return;
       }
@@ -5023,7 +5025,8 @@ function multipleSelect(selectId = "") {
     $(".deploy__price").after(doms);
     $(".deploy__line").remove();
     // 屏蔽购物车按钮
-    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
+    $(".post_content").css({ marginTop: "40px" });
+    $(".addcart").css({ display: "none" });
   }
   if (theme === "vogue") {
     // 渲染详情展示页面
@@ -5130,7 +5133,8 @@ function selectPropertyCombination(selectId = "") {
     $(".deploy__price").after(doms);
     $(".deploy__line").remove();
     // 屏蔽购物车按钮
-    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
+    $(".post_content").css({ marginTop: "40px" });
+    $(".addcart").css({ display: "none" });
   }
   if (theme === "vogue") {
     // 渲染详情展示页面
@@ -5439,7 +5443,8 @@ function tileRender(selectId = "") {
     $(".deploy__price").after(doms);
     $(".deploy__line").remove();
     // 屏蔽购物车按钮
-    $(".addcart").css({ visibility: "hidden", positon: "absolute" });
+    $(".post_content").css({ marginTop: "40px" });
+    $(".addcart").css({ display: "none" });
   }
   if (theme === "vogue") {
     // 渲染详情展示页面
