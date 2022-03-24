@@ -4783,7 +4783,7 @@ script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
 // -----------------------------------------------------字段定义----------------------------------------------
-const API_SellBUNDELENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
+const API_ENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
@@ -4854,7 +4854,7 @@ $(function () {
 // 获取combo数据以及插入html
 function getDataAndInsertHtml() {
   // 请求combo详情接口
-  fetch(`${API_SellBUNDELENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.href}`)
+  fetch(`${API_ENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.href}`)
     .then((response) => response.json())
     .then((res) => {
       console.log("combo详情接口数据", res);
@@ -4889,7 +4889,7 @@ function getDataAndInsertHtml() {
 }
 // 获取样式配置
 function getStyleConfig() {
-  fetch(`${API_SellBUNDELENDPOINT}/api/getStyleSetting?shop=${shop}`, {
+  fetch(`${API_ENDPOINT}/api/getStyleSetting?shop=${shop}`, {
     method: "GET",
   })
     .then((response) => response.json())
@@ -4969,8 +4969,8 @@ function multipleSelect(selectId = "") {
     let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
-        <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
-      `;
+      <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+    `;
     });
     suitDom =
       suitDom +
@@ -4981,41 +4981,41 @@ function multipleSelect(selectId = "") {
     arr.forEach((item, index) => {
       let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
       doms += `
-          <div class="fx-detailsBox" data-index="${index}">
-          <div class="fx-leftImg">
-              <img class="fx-leftImgSelf${index}" src="${img}" alt="" >
-          </div>
-          <div class="fx-rightBox">
-              <div class="fx-title" title="${item.title}">
-                  ${item.title}
-              </div>
-              ${combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
-              <div class="selectBoxs">
-               ${item.variant_attrs.reduce((prev, currents, indexs) => {
-                 return (
-                   prev +
-                   `<div class="selectBox${index} selectItemBox" data-value="${currents.name}:${currents.value[0]}">
-                   <div class="fx-select" id="fx-select-${index}${indexs}"> 
-                  ${currents.name}:${currents.value[0]}               
-                   </div>
-                   <div class="fx-list" id="${index}${indexs}">
-                      ${currents.value.reduce((prev, current) => {
-                        return (
-                          prev +
-                          `
-                        <div class="fx-listItem" title="${currents.name}:${current}" key="${index}${indexs}">${currents.name}:${current}</div>
+        <div class="fx-detailsBox" data-index="${index}">
+        <div class="fx-leftImg">
+            <img class="fx-leftImgSelf${index}" src="${img}" alt="" >
+        </div>
+        <div class="fx-rightBox">
+            <div class="fx-title" title="${item.title}">
+                ${item.title}
+            </div>
+            ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+            <div class="selectBoxs">
+             ${item.variant_attrs.reduce((prev, currents, indexs) => {
+               return (
+                 prev +
+                 `<div class="selectBox${index} selectItemBox" data-value="${currents.name}:${currents.value[0]}">
+                 <div class="fx-select" id="fx-select-${index}${indexs}"> 
+                ${currents.name}:${currents.value[0]}               
+                 </div>
+                 <div class="fx-list" id="${index}${indexs}">
+                    ${currents.value.reduce((prev, current) => {
+                      return (
+                        prev +
                         `
-                        );
-                      }, "")}
-                    </div>
-                </div>
-                `
-                 );
-               }, "")}
+                      <div class="fx-listItem" title="${currents.name}:${current}" key="${index}${indexs}">${currents.name}:${current}</div>
+                      `
+                      );
+                    }, "")}
+                  </div>
               </div>
-          </div>
-      </div>
-          `;
+              `
+               );
+             }, "")}
+            </div>
+        </div>
+    </div>
+        `;
     });
   }
   doms + "</div>";
@@ -5060,8 +5060,8 @@ function selectPropertyCombination(selectId = "") {
     let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
-          <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
-        `;
+        <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+      `;
     });
     suitDom =
       suitDom +
@@ -5075,57 +5075,53 @@ function selectPropertyCombination(selectId = "") {
       let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
       if (item.attrs_string.length > 0) {
         doms += `
-          <div class="fx-detailsBox" data-index=${index}>
-            <div class="fx-leftImg">
-              <img class="fx-leftImgSelf${index}" src="${img}" alt="" data-index=${index}>
-            </div>
-            <div class="fx-rightBox">
-              <div class="fx-title" title=${item.title}>
-                  ${item.title}
-              </div>
-              ${combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
-              <div class="selectBoxs">
-               <div class="selectBox${index} selectItemBox" data-value="${item.attrs_string[0]}">
-                <div class="fx-select" id="fx-select-${index}"> 
-                 ${item.attrs_string[0]}              
-                </div>
-                <div class="fx-list" id=${index}>
-                 ${item.attrs_string.reduce((prev, currents, indexs) => {
-                   return (
-                     prev +
-                     `
-                       <div class="fx-listItem" title="${currents}" key=${index}${indexs} >${currents}</div>
-                       `
-                   );
-                 }, "")}
-                 </div>
-              </div>
-              </div>
+        <div class="fx-detailsBox" data-index=${index}>
+          <div class="fx-leftImg">
+            <img class="fx-leftImgSelf${index}" src="${img}" alt="" data-index=${index}>
           </div>
-      </div>
-          `;
+          <div class="fx-rightBox">
+            <div class="fx-title" title=${item.title}>
+                ${item.title}
+            </div>
+            ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+            <div class="selectBoxs">
+             <div class="selectBox${index} selectItemBox" data-value="${item.attrs_string[0]}">
+              <div class="fx-select" id="fx-select-${index}"> 
+               ${item.attrs_string[0]}              
+              </div>
+              <div class="fx-list" id=${index}>
+               ${item.attrs_string.reduce((prev, currents, indexs) => {
+                 return (
+                   prev +
+                   `
+                     <div class="fx-listItem" title="${currents}" key=${index}${indexs} >${currents}</div>
+                     `
+                 );
+               }, "")}
+               </div>
+            </div>
+            </div>
+        </div>
+    </div>
+        `;
       } else {
         doms += `
-              <div class="fx-detailsBox" data-index=${index}>
-                <div class="fx-leftImg">
-                  <img class="fx-leftImgSelf${index}" src="${img}" alt=""  data-index=${index}>
-                </div>
-                <div class="fx-rightBox">
-                  <div class="fx-title" title=${item.title}>
-                      ${item.title}
-                  </div>
-                  ${
-                    combination_type === 2 && item.number > 1
-                      ? `<div class="fx-goods-number">x ${item.number}</div>`
-                      : ""
-                  }
-                  <div class="selectBoxs">
-                   <div class="selectBox${index} selectItemBox" data-value="">
-                   </div>
-                  </div>
+            <div class="fx-detailsBox" data-index=${index}>
+              <div class="fx-leftImg">
+                <img class="fx-leftImgSelf${index}" src="${img}" alt=""  data-index=${index}>
               </div>
-          </div>
-              `;
+              <div class="fx-rightBox">
+                <div class="fx-title" title=${item.title}>
+                    ${item.title}
+                </div>
+                ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+                <div class="selectBoxs">
+                 <div class="selectBox${index} selectItemBox" data-value="">
+                 </div>
+                </div>
+            </div>
+        </div>
+            `;
       }
     });
   }
@@ -5247,9 +5243,21 @@ function checkSell(type) {
     // 如果没有variants属性
     if (arr[i].variants.length === 0) {
       console.log("没有variants属性的商品对象信息", arr[i]);
-      obj = { product_id: arr[i].ID, stock: arr[i].stock };
+      obj = {
+        product_id: arr[i].ID,
+        stock: arr[i].stock,
+        number: arr[i].number,
+        sale_price: arr[i].sale_price,
+        manage_stock: arr[i].manage_stock,
+      };
       if (combination_type === 2) {
-        obj = { product_id: arr[i].ID, stock: arr[i].stock, number: arr[i].number, sale_price: arr[i].sale_price };
+        obj = {
+          product_id: arr[i].ID,
+          stock: arr[i].stock,
+          number: arr[i].number,
+          sale_price: arr[i].sale_price,
+          manage_stock: arr[i].manage_stock,
+        };
       }
       params.push(obj);
       // 继续下一轮循环
@@ -5258,9 +5266,9 @@ function checkSell(type) {
     let arrId = indexOf(arr[i].variants, str); // 所选的属性（str） 没有在变种数组里面对应上
     // 属性如果没有找到
     if (arrId === -1) {
-      obj = { product_id: arr[i].ID, stock: 0 };
+      obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0, manage_stock: "yes" };
       if (combination_type === 2) {
-        obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0 };
+        obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0, manage_stock: "yes" };
       }
       params.push(obj);
       // 继续下一轮循环
@@ -5272,7 +5280,16 @@ function checkSell(type) {
     let variant_id = arr[i]["variants"][arrId].ID;
     let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
     let img = arr[i]["variants"][arrId].image || `${ASSET_ENDPOINT}/default.png`;
-    obj = { product_id, variant_id, stock, imgLink: img };
+    let manage_stock = arr[i]["variants"][arrId].manage_stock;
+    obj = {
+      product_id,
+      variant_id,
+      stock,
+      imgLink: img,
+      number: arr[i].number,
+      sale_price: arr[i]["variants"][arrId].sale_price,
+      manage_stock,
+    };
     if (combination_type === 2) {
       obj = {
         product_id,
@@ -5281,6 +5298,7 @@ function checkSell(type) {
         imgLink: img,
         number: arr[i].number,
         sale_price: arr[i]["variants"][arrId].sale_price,
+        manage_stock,
       };
     }
     // 如果不存在变种id 删除这个字段
@@ -5291,10 +5309,11 @@ function checkSell(type) {
   }
   // 数量默认为配置时 指定的最低件数
   params.forEach((item) => {
-    item.quantity = condition_num;
+    // item.quantity = condition_num;
+    item.quantity = item.number;
   });
   // 捆绑属性时，为输入的number数量
-  if (combination_type === 2) {
+  if (combination_type === 2 || combination_type === 1) {
     params.forEach((item) => {
       item.quantity = item.number;
     });
@@ -5302,6 +5321,9 @@ function checkSell(type) {
   // stockIsNull 为true说明有stock（库存） 为0的商品，不能在售卖，按钮变成sold out;
   let stockIsNull =
     params.filter((item) => {
+      if (item?.manage_stock === "no") {
+        return false;
+      }
       return item.stock <= 0 || item.quantity > item.stock;
     }).length > 0;
   // 根据不同的变种id 展示不同的图片
@@ -5309,7 +5331,7 @@ function checkSell(type) {
   //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
   // });
   // 捆绑属性时，总共价格的计算，并渲染到页面上
-  if (combination_type === 2) {
+  if (combination_type === 2 || combination_type === 1) {
     // 总价初始化
     totalPrice = 0;
     params.forEach((item) => {
@@ -5357,8 +5379,8 @@ function tileRender(selectId = "") {
     let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
-          <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
-        `;
+        <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+      `;
     });
     suitDom =
       suitDom +
@@ -5373,50 +5395,44 @@ function tileRender(selectId = "") {
       let img = item?.image ? item?.image : `${ASSET_ENDPOINT}/default.png`;
       if (item.attrs_string.length > 0) {
         doms += `
-            <div class="fx-tile-everyItem" data-index="${index}">
-              <div class="fx-tile-everyItem-leftImg">
-                  <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
+          <div class="fx-tile-everyItem" data-index="${index}">
+            <div class="fx-tile-everyItem-leftImg">
+                <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
+            </div>
+            <div class="fx-tile-rightBox">
+              <div class="fx-tile-goods-title" title="${item.title}">
+                  ${item.title}
               </div>
-              <div class="fx-tile-rightBox">
-                <div class="fx-tile-goods-title" title="${item.title}">
-                    ${item.title}
-                </div>
-                ${
-                  combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""
-                }
-                <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${item.attrs_string[0]}'>
-                  ${item.attrs_string.reduce((prev, currents, indexs) => {
-                    return (
-                      prev +
+              ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+              <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${item.attrs_string[0]}'>
+                ${item.attrs_string.reduce((prev, currents, indexs) => {
+                  return (
+                    prev +
+                    `
+                      <div class="fx-tile-propertyBox-item" id="${index}${indexs}" data-value="${currents}" title="${currents}" data-keys="${index}" key="${indexs}">${currents}</div>
                       `
-                        <div class="fx-tile-propertyBox-item" id="${index}${indexs}" data-value="${currents}" title="${currents}" data-keys="${index}" key="${indexs}">${currents}</div>
-                        `
-                    );
-                  }, "")}
-                </div>
+                  );
+                }, "")}
               </div>
             </div>
-            `;
+          </div>
+          `;
       } else {
         doms += `
-                  <div class="fx-tile-everyItem" data-index="${index}">
-                    <div class="fx-tile-everyItem-leftImg">
-                        <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
+                <div class="fx-tile-everyItem" data-index="${index}">
+                  <div class="fx-tile-everyItem-leftImg">
+                      <img class="fx-tile-leftImgSelf fx-leftImgSelf${index}" src=${img} alt="">
+                  </div>
+                  <div class="fx-tile-rightBox">
+                    <div class="fx-tile-goods-title">
+                        ${item?.title}
                     </div>
-                    <div class="fx-tile-rightBox">
-                      <div class="fx-tile-goods-title">
-                          ${item?.title}
-                      </div>
-                      ${
-                        combination_type === 2 && item.number > 1
-                          ? `<div class="fx-goods-number">x ${item.number}</div>`
-                          : ""
-                      }
-                      <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value="">
-                      </div>
+                    ${item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""}
+                    <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value="">
                     </div>
                   </div>
-                  `;
+                </div>
+                `;
       }
     });
   }
@@ -5574,17 +5590,17 @@ function AddCartButtonStyle(stockIsNull, params) {
       }
       // 新增一个新的购物车按钮
       let addButton = `
-        <div class="product_single_add_button transition-main fx-add-button">
-          <span class="secondary_title fx-addCartButton-text">${normalValue}</span>
-        </div>
-        `;
+      <div class="product_single_add_button transition-main fx-add-button">
+        <span class="secondary_title fx-addCartButton-text">${normalValue}</span>
+      </div>
+      `;
       // 售卖完的按钮
       let disAbleButton = `
-        <div class="product_single_add_button product_single_add_button_disabled
-        soldout">
-          <span class="secondary_title">${disAbleValue}</span>
-        </div>
-        `;
+      <div class="product_single_add_button product_single_add_button_disabled
+      soldout">
+        <span class="secondary_title">${disAbleValue}</span>
+      </div>
+      `;
       $(".product_single_add_button").remove();
       if ($(".product_single_add_button_disabledsoldout").length) {
         disAbleValue = textValue;
@@ -5638,15 +5654,15 @@ function AddCartButtonStyle(stockIsNull, params) {
       }
       // 新增一个新的购物车按钮
       let addButton = `
-          <div class="basic—addToCartButton">
-            <span class="fx-addCartButton-text">${normalValue}</span>
-          </div>
-            `;
+        <div class="basic—addToCartButton">
+          <span class="fx-addCartButton-text">${normalValue}</span>
+        </div>
+          `;
       // 售卖完的按钮
       let disAbleButton = `
-          <div class="product_single_add_button product_single_add_button_disabled soldout fx-disable-basic">
-            <span>${disAbleValue}</span>
-          </div>`;
+        <div class="product_single_add_button product_single_add_button_disabled soldout fx-disable-basic">
+          <span>${disAbleValue}</span>
+        </div>`;
       if (stockIsNull || isTakeDown) {
         if (isTakeDown) {
           disAbleValue = "Product has been discontinued";
@@ -5807,7 +5823,7 @@ function jumpTocart(params) {
           let url = origin + "/cart";
           // 创建优惠卷promise
           const createCouponPromise = new Promise((resolve, reject) => {
-            fetch(`${API_SellBUNDELENDPOINT}/api/createCoupon`, {
+            fetch(`${API_ENDPOINT}/api/createCoupon`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -5928,7 +5944,7 @@ function jumpTocart(params) {
 // ---------------------------------------------------------------checkout逻辑 start----------------------------------------
 // 获取初始时样式配置
 function getCartStyleConfig(type) {
-  fetch(`${API_SellBUNDELENDPOINT}/api/getStyleSetting?shop=${shop}`, {
+  fetch(`${API_ENDPOINT}/api/getStyleSetting?shop=${shop}`, {
     method: "GET",
   })
     .then((response) => response.json())
@@ -6212,7 +6228,7 @@ function requestCartAndCheckedCoupon() {
         return;
       }
       // 请求检查优惠卷接口
-      fetch(`${API_SellBUNDELENDPOINT}/api/checkCoupon`, {
+      fetch(`${API_ENDPOINT}/api/checkCoupon`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -6296,6 +6312,7 @@ function returnedDataProcessing(arrData) {
     obj.image = item.image;
     obj.number = item.number;
     obj.sale_price = item.price;
+    obj.manage_stock = item.manage_stock;
     // obj.discount = item.discount;
     // obj.key = item.key;
     newArrData.push(obj);
@@ -6305,8 +6322,8 @@ function returnedDataProcessing(arrData) {
   newArrData.forEach((item, index) => {
     item.variants.forEach((item2, index2) => {
       let obj = {};
-      const { ID, attrs_string, image, attrs, stock, price: sale_price } = item2;
-      obj = { ID, attrs_string, image, attrs, stock, sale_price: Number(sale_price) };
+      const { ID, attrs_string, image, attrs, stock, price: sale_price, manage_stock } = item2;
+      obj = { ID, attrs_string, image, attrs, stock, sale_price: Number(sale_price), manage_stock };
       newArrData2[index].variants[index2] = obj;
     });
   });
@@ -6484,7 +6501,8 @@ function appendCss() {
   let link1 = document.createElement("link");
   link1.setAttribute("rel", "stylesheet");
   link1.setAttribute("type", "text/css");
-  link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
+  // link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
+  link1.setAttribute("href", "https://test.com/index.css");
   let head = document.getElementsByTagName("head")[0];
   head.appendChild(link1);
   // 插入css 结束
