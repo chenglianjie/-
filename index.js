@@ -5306,9 +5306,11 @@ function checkSell(type) {
   //     }).length > 0;
   let stockIsNull = false;
   // 根据不同的变种id 展示不同的图片
-  // params.forEach((itemobj, index) => {
-  //   $(`.fx-leftImgSelf${index}`).attr("src", itemobj.imgLink);
-  // });
+  params.forEach((itemobj, index) => {
+    console.log("图片params", itemobj);
+    let imgSrc = itemobj.imgLink || `${ASSET_ENDPOINT}/default.png`;
+    $(`.fx-leftImgSelf${index}`).attr("src", imgSrc);
+  });
   // 捆绑属性时，总共价格的计算，并渲染到页面上
   if (combination_type === 2) {
     // 总价初始化
@@ -5334,7 +5336,7 @@ function checkSell(type) {
         priceSymbolEnd = $(".money span").last().text();
         // console.log("价格符号", priceSymbolString, priceSymbolEnd);
         // <span> ${priceSymbolEnd}</span>
-        $(".money").replaceWith(
+        $(".product-right .money").replaceWith(
           `<span class="money secondary_title price_text"><span>${priceSymbolString}</span> ${totalPrice}</span>`
         );
       }
@@ -6487,7 +6489,8 @@ function appendCss() {
   let link1 = document.createElement("link");
   link1.setAttribute("rel", "stylesheet");
   link1.setAttribute("type", "text/css");
-  link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
+  link1.setAttribute("href", "https://test.com/index.css");
+  // link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
   let head = document.getElementsByTagName("head")[0];
   head.appendChild(link1);
   // 插入css 结束

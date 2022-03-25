@@ -315,7 +315,7 @@
 /* 横向样式 只在pc端生效 */
 @media screen and (min-width: 769px) {
   .suit-box {
-    height: auto !important;
+    max-height: inherit !important;
   }
   /* 展开和关闭 */
   .suit-box-close {
