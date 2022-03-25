@@ -4809,6 +4809,7 @@ let suitKey = ""; // 捆绑属性 combination_type 为2时选择的combo组合ke
 let totalPrice = 0; // combination_type为2时  计算选中商品的总价格
 let goodsSaleType = ""; // 商品优惠类型 (1--百分比减扣,2--一口价,3--固定减扣)
 let goodsDiscount = ""; // 商品优惠值
+let mobilSuitBoxOpen = false; // 移动端suit box是否展开
 // ----------------------------------------------------------脚本开始----------------------------------------------
 $(function () {
   console.log("jq is readay", theme);
@@ -5273,7 +5274,7 @@ function checkSell(type) {
       continue;
     }
     // 属性在变种数组里面找到了  得到商品id和变种id以及价格等需要的数据
-    console.log("有variants属性的商品对象信息", arr[i]);
+    console.log("有variants属性的商品对象信息和arriD", arr[i], arrId);
     let product_id = arr[i].ID;
     let variant_id = arr[i]["variants"][arrId].ID;
     let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
@@ -5313,7 +5314,7 @@ function checkSell(type) {
   let stockIsNull = false;
   // 根据不同的变种id 展示不同的图片
   params.forEach((itemobj, index) => {
-    console.log("图片params", itemobj);
+    console.log("图片params遍历", itemobj);
     let imgSrc = itemobj.imgLink || `${ASSET_ENDPOINT}/default.png`;
     $(`.fx-leftImgSelf${index}`).attr("src", imgSrc);
   });
@@ -5486,22 +5487,27 @@ function suitClick(type, selectId) {
   styles.innerHTML = styleStrings;
   document.getElementsByTagName("head").item(0).appendChild(styles);
   // 判断是否展开或收起
-  console.log("$(window).height() 高度", $(".suit-box").height());
+  console.log("$(window).height() 高度和mobilSuitBoxOpen", $(".suit-box").height(), mobilSuitBoxOpen);
   if ($(".suit-box").height() > 110) {
     $(".suit-box").css({ "max-height": "104px", overflow: "hidden" });
     $(".suit-box-open").addClass("suit-box-open-mobile");
     $(".suit-box-open").on("click", () => {
       console.log("我点击了 open");
+      mobilSuitBoxOpen = true;
       $(".suit-box").css({ "max-height": "initial", overflow: "auto" });
       $(".suit-box-close").addClass("suit-box-open-mobile");
       $(".suit-box-open").css({ display: "none" });
       $(".suit-box-close").css({ display: "block" });
     });
     $(".suit-box-close").on("click", () => {
+      mobilSuitBoxOpen = false;
       $(".suit-box-close").css({ display: "none" });
       $(".suit-box-open").css({ display: "block" });
       $(".suit-box").css({ "max-height": "104px", overflow: "hidden" });
     });
+  }
+  if (mobilSuitBoxOpen) {
+    $(".suit-box").css({ "max-height": "initial", overflow: "auto" });
   }
   // 监听suit点击
   $(".suit-item").on("click", (event) => {
@@ -5533,6 +5539,8 @@ function suitClick(type, selectId) {
     $(".fx-details-bigBox").remove();
     $(".suit-title").remove();
     $(".suit-box").remove();
+    $(".suit-box-open").remove();
+    $(".suit-box-close").remove();
     // 渲染数据变化 重新执行渲染逻辑
     if (type === 1) {
       // 属性下拉渲染方式
@@ -5759,57 +5767,57 @@ function jumpTocart(params) {
         }
         console.log("购物车res22", res);
         let flag = true; // 是否允许加入购物车
-        let num = 0; // 购物车里面商品的数量
-        // 判断购物车里面的商品库存加上加入的库存 是否大于 本身的库存
-        let cartData = Object.values(res.cart);
-        console.log("params", params.product);
-        console.log("cartData", cartData);
-        if (cartData.length > 0) {
-          params.product.forEach((item2) => {
-            cartData.forEach((item3) => {
-              if (item3.product_id === item2.product_id) {
-                console.log("item3.product_id", item3.product_id);
-                // 存在变种id
-                if (item2.variant_id) {
-                  if (item2.variant_id === item3.variant.ID) {
-                    let stock = item2.stock;
-                    let quantity = item2.quantity + item3.quantity;
-                    console.log("不存在变种id stock 和加入数量购物车数量对比quantity stock", quantity, stock);
-                    if (quantity > stock) {
-                      flag = false;
-                      num = stock;
-                    }
-                  }
-                }
-                // 不存在变种id
-                else {
-                  console.log("进入else了");
-                  let stock = item2.stock;
-                  let quantity = item2.quantity + item3.quantity;
-                  console.log("不存在变种id stock 和加入数量购物车数量对比quantity stock", quantity, stock);
-                  if (quantity > stock) {
-                    flag = false;
-                    num = stock;
-                  }
-                }
-              }
-            });
-          });
-        }
-        console.log("判断购物车验证数量是否通过flag true为通过 false不通过", flag);
+        // let num = 0; // 购物车里面商品的数量
+        // // 判断购物车里面的商品库存加上加入的库存 是否大于 本身的库存
+        // let cartData = Object.values(res.cart);
+        // console.log("params", params.product);
+        // console.log("cartData", cartData);
+        // if (cartData.length > 0) {
+        //   params.product.forEach((item2) => {
+        //     cartData.forEach((item3) => {
+        //       if (item3.product_id === item2.product_id) {
+        //         console.log("item3.product_id", item3.product_id);
+        //         // 存在变种id
+        //         if (item2.variant_id) {
+        //           if (item2.variant_id === item3.variant.ID) {
+        //             let stock = item2.stock;
+        //             let quantity = item2.quantity + item3.quantity;
+        //             console.log("不存在变种id stock 和加入数量购物车数量对比quantity stock", quantity, stock);
+        //             if (quantity > stock) {
+        //               flag = false;
+        //               num = stock;
+        //             }
+        //           }
+        //         }
+        //         // 不存在变种id
+        //         else {
+        //           console.log("进入else了");
+        //           let stock = item2.stock;
+        //           let quantity = item2.quantity + item3.quantity;
+        //           console.log("不存在变种id stock 和加入数量购物车数量对比quantity stock", quantity, stock);
+        //           if (quantity > stock) {
+        //             flag = false;
+        //             num = stock;
+        //           }
+        //         }
+        //       }
+        //     });
+        //   });
+        // }
+        // console.log("判断购物车验证数量是否通过flag true为通过 false不通过", flag);
         if (!flag) {
           // let errorMsg = `You cannot add that amount to the cart — we have ${num} in stock and you already have ${num} in your cart`;
-          let errorMsg = `This product is out of stock`;
-          let message = `<div class="fx-error-message fx-error-message2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
-          $("body").append(message);
-          $(".fx-add-button").removeClass("fx-add-button-loading");
-          $(".fx-add-button").addClass("transition-main");
-          setTimeout(() => {
-            $(".fx-error-message").remove();
-          }, 5000);
-          canClickAddButton = true;
-          $(".basic—addToCartButton").removeClass("basic—addToCartButton-loading");
-          $(".fx-add-button").removeClass("fx-add-button-loading");
+          // let errorMsg = `This product is out of stock`;
+          // let message = `<div class="fx-error-message fx-error-message2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAOCAYAAADwikbvAAAAAXNSR0IArs4c6QAAAUpJREFUOE+VUtFRwkAU3HfgjD8KqUDsQDrADqAC4Vs0RwXQgcmE8ResADoAKzBWIB0Evp176yQmGYTg6Pu7d7vv9vatYK8Sa5t1VZ+UDoEbAE0IYiFi5yT0noN4Hy/FIRnarhHOMsKJMgbBRRiOiuuMnBMXp0gHr80vo3CQ9iSxtmUcVwBafyGnGIWOvCgKJLm31hg+FUQFX0Gsjcg47RFYknwvzjlu24hCT3ZD/w2SmVOWUm4BdIzwTmvSNsoVeIyR3YPPCrlb/ZQ2zrGtk2NV2EOMOh2k5KTC4ZJcc5wR6FaTq2X3zoxeOUhfjfSMclEpOxk+Tn6YIYhryrkTCbJ1AEt3bNimEYXX6aqaxvHjt3AcSYYOvCia/zskSnnxpkE/V/U9N09Zuu+TYVFK6E2D0vky29kAa1tw6AjpS757AhsB1vmL6/0vfAHnf6RxYg29bwAAAABJRU5ErkJggg==">${errorMsg}</div>`;
+          // $("body").append(message);
+          // $(".fx-add-button").removeClass("fx-add-button-loading");
+          // $(".fx-add-button").addClass("transition-main");
+          // setTimeout(() => {
+          //   $(".fx-error-message").remove();
+          // }, 5000);
+          // canClickAddButton = true;
+          // $(".basic—addToCartButton").removeClass("basic—addToCartButton-loading");
+          // $(".fx-add-button").removeClass("fx-add-button-loading");
           // $(".basic—addToCartButton").addClass("minor_button");
           // $(".basic—addToCartButton").addClass("el-button");
           return;
