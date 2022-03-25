@@ -5247,9 +5247,15 @@ function checkSell(type) {
     // 如果没有variants属性
     if (arr[i].variants.length === 0) {
       console.log("没有variants属性的商品对象信息", arr[i]);
-      obj = { product_id: arr[i].ID, stock: arr[i].stock };
+      obj = { product_id: arr[i].ID, stock: arr[i].stock, imgLink: arr[i].image };
       if (combination_type === 2) {
-        obj = { product_id: arr[i].ID, stock: arr[i].stock, number: arr[i].number, sale_price: arr[i].sale_price };
+        obj = {
+          product_id: arr[i].ID,
+          stock: arr[i].stock,
+          number: arr[i].number,
+          sale_price: arr[i].sale_price,
+          imgLink: arr[i].image,
+        };
       }
       params.push(obj);
       // 继续下一轮循环
