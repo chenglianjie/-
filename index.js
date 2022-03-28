@@ -5278,7 +5278,7 @@ function checkSell(type) {
     let product_id = arr[i].ID;
     let variant_id = arr[i]["variants"][arrId].ID;
     let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
-    let img = arr[i]["variants"][arrId].image || `${ASSET_ENDPOINT}/default.png`;
+    let img = arr[i]["variants"][arrId].image || arr[i].image || `${ASSET_ENDPOINT}/default.png`;
     obj = { product_id, variant_id, stock, imgLink: img };
     if (combination_type === 2) {
       obj = {
