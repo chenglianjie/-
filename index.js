@@ -5868,6 +5868,7 @@ function jumpTocart(params) {
                 $(".fx-add-button").removeClass("fx-add-button-loading");
                 $(".basic—addToCartButton").removeClass("basic—addToCartButton-loading");
                 $(".fx-add-button").removeClass("fx-add-button-loading");
+                $(".fx-add-button").addClass("transition-main");
                 setTimeout(() => {
                   $(".fx-error-message").remove();
                 }, 3000);
