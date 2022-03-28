@@ -5757,11 +5757,11 @@ function jumpTocart(params) {
           $(".fx-add-button").removeClass("fx-add-button-loading");
           $(".fx-add-button").addClass("transition-main");
           setTimeout(() => {
-            $(".fx-error-message").remove();
+            // $(".fx-error-message").remove();
           }, 5000);
           $(".basic—addToCartButton").removeClass("basic—addToCartButton-loading");
-          $(".basic—addToCartButton").addClass("minor_button");
-          $(".basic—addToCartButton").addClass("el-button");
+          // $(".basic—addToCartButton").addClass("minor_button");
+          // $(".basic—addToCartButton").addClass("el-button");
           canClickAddButton = true;
           return;
         }
@@ -5871,6 +5871,7 @@ function jumpTocart(params) {
                 setTimeout(() => {
                   $(".fx-error-message").remove();
                 }, 3000);
+                canClickAddButton = true;
                 return;
               }
               if (Array.isArray(result) && result.length === 2) {
