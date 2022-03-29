@@ -4786,7 +4786,7 @@ document.getElementsByTagName("head")[0].appendChild(script);
 const API_SellBUNDELENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
-const ASSET_ENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
+const ASSET_SellBUNDELEENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
 let arr = []; // combo详情数组
 let comboId = ""; // comboId
 let canClickAddButton = true; // 是否能点击加入购物车按钮 避免连续频繁点击
@@ -4975,12 +4975,12 @@ function multipleSelect(selectId = "") {
     });
     suitDom =
       suitDom +
-      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src=${ASSET_ENDPOINT}/suitOpenIcon.png></span><span class=suit-box-close>收起 <img class=suit-icon-img src=${ASSET_ENDPOINT}/suitCloseIcon.png></span>`;
+      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src=${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.png></span><span class=suit-box-close>收起 <img class=suit-icon-img src=${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.png></span>`;
     doms = suitDom + doms;
   }
   if (Array.isArray(arr) && arr.length > 0) {
     arr.forEach((item, index) => {
-      let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
+      let img = item.image ? item.image : `${ASSET_SellBUNDELEENDPOINT}/default.png`;
       doms += `
           <div class="fx-detailsBox" data-index="${index}">
           <div class="fx-leftImg">
@@ -5066,14 +5066,14 @@ function selectPropertyCombination(selectId = "") {
     });
     suitDom =
       suitDom +
-      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitCloseIcon.png'></span>`;
+      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.png'></span>`;
     doms = suitDom + doms;
   }
   // 处理属性组合下拉框渲染数据
   propertyCombination(arr);
   if (Array.isArray(arr) && arr.length > 0) {
     arr.forEach((item, index) => {
-      let img = item.image ? item.image : `${ASSET_ENDPOINT}/default.png`;
+      let img = item.image ? item.image : `${ASSET_SellBUNDELEENDPOINT}/default.png`;
       if (item.attrs_string.length > 0) {
         doms += `
           <div class="fx-detailsBox" data-index=${index}>
@@ -5278,7 +5278,7 @@ function checkSell(type) {
     let product_id = arr[i].ID;
     let variant_id = arr[i]["variants"][arrId].ID;
     let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
-    let img = arr[i]["variants"][arrId].image || arr[i].image || `${ASSET_ENDPOINT}/default.png`;
+    let img = arr[i]["variants"][arrId].image || arr[i].image || `${ASSET_SellBUNDELEENDPOINT}/default.png`;
     obj = { product_id, variant_id, stock, imgLink: img };
     if (combination_type === 2) {
       obj = {
@@ -5315,7 +5315,7 @@ function checkSell(type) {
   // 根据不同的变种id 展示不同的图片
   params.forEach((itemobj, index) => {
     console.log("图片params遍历", itemobj);
-    let imgSrc = itemobj.imgLink || `${ASSET_ENDPOINT}/default.png`;
+    let imgSrc = itemobj.imgLink || `${ASSET_SellBUNDELEENDPOINT}/default.png`;
     $(`.fx-leftImgSelf${index}`).attr("src", imgSrc);
   });
   // 捆绑属性时，总共价格的计算，并渲染到页面上
@@ -5372,7 +5372,7 @@ function tileRender(selectId = "") {
     });
     suitDom =
       suitDom +
-      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_ENDPOINT}/suitCloseIcon.png'></span>`;
+      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.png'></span>`;
     doms = suitDom + doms;
   }
   // 处理平铺渲染数据
@@ -5380,7 +5380,7 @@ function tileRender(selectId = "") {
   console.log("平铺渲染combination_type", combination_type, arr);
   if (Array.isArray(arr) && arr.length > 0) {
     arr.forEach((item, index) => {
-      let img = item?.image ? item?.image : `${ASSET_ENDPOINT}/default.png`;
+      let img = item?.image ? item?.image : `${ASSET_SellBUNDELEENDPOINT}/default.png`;
       if (item.attrs_string.length > 0) {
         doms += `
             <div class="fx-tile-everyItem" data-index="${index}">
@@ -6506,7 +6506,7 @@ function appendCss() {
   link1.setAttribute("rel", "stylesheet");
   link1.setAttribute("type", "text/css");
   link1.setAttribute("href", "https://test.com/index.css");
-  // link1.setAttribute("href", `${ASSET_ENDPOINT}/index.css`);
+  // link1.setAttribute("href", `${ASSET_SellBUNDELEENDPOINT}/index.css`);
   let head = document.getElementsByTagName("head")[0];
   head.appendChild(link1);
   // 插入css 结束
