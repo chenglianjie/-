@@ -4773,7 +4773,7 @@ function rewirteLog() {
   })(console.log);
 }
 // 日志是否清除
-// rewirteLog();
+rewirteLog();
 
 // ------------------------------------------------------sentry 引入-------------------------------------
 var script = document.createElement("script");
@@ -4856,7 +4856,7 @@ $(function () {
 // 获取combo数据以及插入html
 function getDataAndInsertHtml() {
   // 请求combo详情接口
-  fetch(`${API_SellBUNDELENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.href}`)
+  fetch(`${API_SellBUNDELENDPOINT}/api/getGoodsDetails?shop=${window.location.pathname}&url=${window.location.href}`)
     .then((response) => response.json())
     .then((res) => {
       console.log("combo详情接口数据", res);
@@ -4878,7 +4878,7 @@ function getDataAndInsertHtml() {
       if (combination_type === 2) {
         // 捆绑属性combo时 返回商品数据处理
         goodsSaleType = res.data.comboInfo.sale_type;
-        suitarr = res.data.detaile_page_render_data;  //  捆绑属性名称渲染
+        suitarr = res.data.detaile_page_render_data; //  捆绑属性名称渲染
         suitKey = res.data.detaile_page_render_data[0].key; // 当前选中捆绑包key
         selectSuit = res.data.detaile_page_render_data[0]; // // 选中的捆绑属性包
         goodsDiscount = Number(res.data.detaile_page_render_data[0].discount);
@@ -5320,14 +5320,12 @@ function checkSell(type) {
     $(`.fx-leftImgSelf${index}`).attr("src", imgSrc);
   });
   // 捆绑属性时，总共价格的计算，并渲染到页面上
-  console.warn("combination_type111",combination_type)
   if (combination_type === 2) {
     // 总价初始化
     totalPrice = 0;
     params.forEach((item) => {
       totalPrice += item.sale_price * item.number;
     });
-    console.log("goodsDiscount 折扣",goodsDiscount)
     // (1--百分比减扣,2--一口价,3--固定减扣)
     if (goodsSaleType === 1) {
       totalPrice = (totalPrice * goodsDiscount) / 100;
@@ -5530,7 +5528,7 @@ function suitClick(type, selectId) {
     console.log("suitarr", suitarr);
     let renderArr = suitarr.filter((item) => {
       return item?.key === currentKey;
-    })[0]
+    })[0];
     console.log("renderArr333", renderArr);
     // 选中的捆绑属性包
     selectSuit = suitarr.filter((item) => {
@@ -5745,8 +5743,7 @@ function jumpTocart(params) {
     // 创建优惠卷参数
     let createCouponObj = { id: comboId, cartInfo, shop };
     if (combination_type === 2) {
-      createCouponObj = { id: comboId, cartInfo, shop, attribute: {id:selectSuit.id,key:selectSuit.key} };
-      console.warn("selectSuit",selectSuit)
+      createCouponObj = { id: comboId, cartInfo, shop, attribute: { id: selectSuit.id, key: selectSuit.key } };
     }
     console.log("传入的createCouponObj", createCouponObj);
     // 请求购物车接口
@@ -5761,7 +5758,7 @@ function jumpTocart(params) {
           $(".fx-add-button").removeClass("fx-add-button-loading");
           $(".fx-add-button").addClass("transition-main");
           setTimeout(() => {
-            // $(".fx-error-message").remove();
+            $(".fx-error-message").remove();
           }, 5000);
           $(".basic—addToCartButton").removeClass("basic—addToCartButton-loading");
           // $(".basic—addToCartButton").addClass("minor_button");
@@ -6344,7 +6341,6 @@ function returnedDataProcessing(arrData) {
     };
   };
   let newArrData3 = JSON.parse(JSON.stringify(newArrData2));
-  console.log("newArrData3",newArrData3)
   newArrData2.forEach((item3, index3) => {
     if (item3.variant_attrs.length > 0) {
       // arrtsArr 所有属性集合在一起的数组 只在这一个函数里面做数据处理使用
