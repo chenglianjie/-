@@ -4783,7 +4783,8 @@ script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
 // -----------------------------------------------------字段定义----------------------------------------------
-const API_SellBUNDELENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
+// const API_SellBUNDELENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
+const API_SellBUNDELENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_SellBUNDELEENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
@@ -4877,11 +4878,11 @@ function getDataAndInsertHtml() {
       if (combination_type === 2) {
         // 捆绑属性combo时 返回商品数据处理
         goodsSaleType = res.data.comboInfo.sale_type;
-        suitarr = res.data.attribute.detaile_page_render_data;
-        suitKey = res.data.attribute.detaile_page_render_data[0].key;
-        selectSuit = res.data.attribute.detaile_page_render_data[0];
-        goodsDiscount = res.data.attribute.detaile_page_render_data[0].discount;
-        arr = returnedDataProcessing(res.data.attribute.detaile_page_render_data[0].goodsRenderData);
+        suitarr = res.data.detaile_page_render_data;  //  捆绑属性名称渲染
+        suitKey = res.data.detaile_page_render_data[0].key; // 当前选中捆绑包key
+        selectSuit = res.data.detaile_page_render_data[0]; // // 选中的捆绑属性包
+        goodsDiscount = Number(res.data.detaile_page_render_data[0].discount);
+        arr = returnedDataProcessing(res.data.detaile_page_render_data[0].goodsRenderData);
       }
       comboId = res.data.comboInfo.id; // comboId
       // 获取购物车按钮，checkout按钮 slod out按钮自定义样式配置
@@ -5319,12 +5320,14 @@ function checkSell(type) {
     $(`.fx-leftImgSelf${index}`).attr("src", imgSrc);
   });
   // 捆绑属性时，总共价格的计算，并渲染到页面上
+  console.warn("combination_type111",combination_type)
   if (combination_type === 2) {
     // 总价初始化
     totalPrice = 0;
     params.forEach((item) => {
       totalPrice += item.sale_price * item.number;
     });
+    console.log("goodsDiscount 折扣",goodsDiscount)
     // (1--百分比减扣,2--一口价,3--固定减扣)
     if (goodsSaleType === 1) {
       totalPrice = (totalPrice * goodsDiscount) / 100;
@@ -5527,15 +5530,15 @@ function suitClick(type, selectId) {
     console.log("suitarr", suitarr);
     let renderArr = suitarr.filter((item) => {
       return item?.key === currentKey;
-    })[0].goodsRenderData;
-    console.log("renderArr", renderArr);
+    })[0]
+    console.log("renderArr333", renderArr);
     // 选中的捆绑属性包
     selectSuit = suitarr.filter((item) => {
       return item?.key === currentKey;
     })[0];
-    goodsDiscount = renderArr[0].discount;
+    goodsDiscount = renderArr.discount;
     // 数据处理
-    arr = returnedDataProcessing(renderArr);
+    arr = returnedDataProcessing(renderArr.goodsRenderData);
     $(".fx-details-bigBox").remove();
     $(".suit-title").remove();
     $(".suit-box").remove();
@@ -5742,7 +5745,8 @@ function jumpTocart(params) {
     // 创建优惠卷参数
     let createCouponObj = { id: comboId, cartInfo, shop };
     if (combination_type === 2) {
-      createCouponObj = { id: comboId, cartInfo, shop, attribute: selectSuit };
+      createCouponObj = { id: comboId, cartInfo, shop, attribute: {id:selectSuit.id,key:selectSuit.key} };
+      console.warn("selectSuit",selectSuit)
     }
     console.log("传入的createCouponObj", createCouponObj);
     // 请求购物车接口
@@ -6340,6 +6344,7 @@ function returnedDataProcessing(arrData) {
     };
   };
   let newArrData3 = JSON.parse(JSON.stringify(newArrData2));
+  console.log("newArrData3",newArrData3)
   newArrData2.forEach((item3, index3) => {
     if (item3.variant_attrs.length > 0) {
       // arrtsArr 所有属性集合在一起的数组 只在这一个函数里面做数据处理使用
