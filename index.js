@@ -4856,7 +4856,7 @@ $(function () {
 // 获取combo数据以及插入html
 function getDataAndInsertHtml() {
   // 请求combo详情接口
-  fetch(`${API_SellBUNDELENDPOINT}/api/getGoodsDetails?shop=${window.location.pathname}&url=${window.location.href}`)
+  fetch(`${API_SellBUNDELENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.pathname}`)
     .then((response) => response.json())
     .then((res) => {
       console.log("combo详情接口数据", res);
@@ -4971,7 +4971,7 @@ function multipleSelect(selectId = "") {
     let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
-        <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+        <div class=suit-item id="${item.key}" title="${item.name}"  data-keys="${index}" data-key="${item.key}">${item.name}</div>
       `;
     });
     suitDom =
@@ -5062,7 +5062,7 @@ function selectPropertyCombination(selectId = "") {
     let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
-          <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+          <div class=suit-item id="${item.key}" title="${item.name}"  data-keys="${index}" data-key="${item.key}">${item.name}</div>
         `;
     });
     suitDom =
@@ -5368,7 +5368,7 @@ function tileRender(selectId = "") {
     let suitDom = '<div class=suit-title>Suit：</div><div class="suit-box">';
     suitarr.forEach((item, index) => {
       suitDom += `
-          <div class=suit-item id=${item.key} title=${item.name}  data-keys=${index} data-key=${item.key}>${item.name}</div>
+          <div class=suit-item id="${item.key}" title="${item.name}"  data-keys="${index}" data-key="${item.key}">${item.name}</div>
         `;
     });
     suitDom =
