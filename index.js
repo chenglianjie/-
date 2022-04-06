@@ -4773,7 +4773,7 @@ function rewirteLog() {
   })(console.log);
 }
 // 日志是否清除
-rewirteLog();
+// rewirteLog();
 
 // ------------------------------------------------------sentry 引入-------------------------------------
 var script = document.createElement("script");
@@ -4783,8 +4783,8 @@ script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
 document.getElementsByTagName("head")[0].appendChild(script);
 // -----------------------------------------------------字段定义----------------------------------------------
-// const API_SellBUNDELENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
-const API_SellBUNDELENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
+const API_SellBUNDELENDPOINT = "https://develop-lf-bundle-selling.lfszo.codefriend.top"; // 测试环境
+// const API_SellBUNDELENDPOINT = "https://develop-bundle-selling-lf.sz1.codefriend.top"; // 本地环境
 const origin = window.location.origin || "https://powder70.hotishop.com";
 const shop = window.location.host || "'powder70.hotishop.com'"; // 店铺名称
 const ASSET_SellBUNDELEENDPOINT = "https://lf-bundle-selling.s3.us-east-2.amazonaws.com/develop";
@@ -4848,7 +4848,7 @@ $(function () {
     getDataAndInsertHtml();
   }
   // -----------------------------购物车是单独页面情况--------------------------
-  if (pathname.indexOf("cart") !== -1) {
+  if (pathname === "/cart") {
     getCartStyleConfig();
     return;
   }
@@ -5266,9 +5266,10 @@ function checkSell(type) {
     let arrId = indexOf(arr[i].variants, str); // 所选的属性（str） 没有在变种数组里面对应上
     // 属性如果没有找到
     if (arrId === -1) {
-      obj = { product_id: arr[i].ID, stock: 0 };
+      console.warn("属性没有找到"); // noSku 表示没有选择的sku 显示sold out 状态
+      obj = { product_id: arr[i].ID, stock: 0, noSku: true };
       if (combination_type === 2) {
-        obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0 };
+        obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0, noSku: true };
       }
       params.push(obj);
       // 继续下一轮循环
@@ -5381,7 +5382,7 @@ function tileRender(selectId = "") {
   console.log("平铺渲染combination_type", combination_type, arr);
   if (Array.isArray(arr) && arr.length > 0) {
     arr.forEach((item, index) => {
-      let img = item?.image ? item?.image : `${ASSET_SellBUNDELEENDPOINT}/default.png`;
+      let img = item.image ? item.image : `${ASSET_SellBUNDELEENDPOINT}/default.png`;
       if (item.attrs_string.length > 0) {
         doms += `
             <div class="fx-tile-everyItem" data-index="${index}">
@@ -5416,7 +5417,7 @@ function tileRender(selectId = "") {
                     </div>
                     <div class="fx-tile-rightBox">
                       <div class="fx-tile-goods-title">
-                          ${item?.title}
+                          ${item.title}
                       </div>
                       ${
                         combination_type === 2 && item.number > 1
@@ -5527,12 +5528,12 @@ function suitClick(type, selectId) {
     // 找到对象的数据 重新渲染;
     console.log("suitarr", suitarr);
     let renderArr = suitarr.filter((item) => {
-      return item?.key === currentKey;
+      return item.key === currentKey;
     })[0];
     console.log("renderArr333", renderArr);
     // 选中的捆绑属性包
     selectSuit = suitarr.filter((item) => {
-      return item?.key === currentKey;
+      return item.key === currentKey;
     })[0];
     goodsDiscount = renderArr.discount;
     // 数据处理
@@ -5565,6 +5566,13 @@ function suitClick(type, selectId) {
 function AddCartButtonStyle(stockIsNull, params) {
   // 如果是详情页 移除原本的加入购物车按钮 新增一个新的添加购物车按钮
   if ($(".fx-details-bigBox".length)) {
+    console.log("AddCartButtonStyle里面的params", params);
+    let noSku =
+      params.filter((item) => {
+        return item.noSku;
+      }).length > 0
+        ? true
+        : false;
     // vogue主题
     if (theme === "vogue") {
       let textValue = $(".product_single_add_button .secondary_title").html();
@@ -5609,7 +5617,7 @@ function AddCartButtonStyle(stockIsNull, params) {
         $(".fx-details-bigBox").append(disAbleButton);
       } else {
         // stockIsNull 为false说明有库存，true说明没有库存
-        if (stockIsNull || isTakeDown) {
+        if (stockIsNull || isTakeDown || noSku) {
           if (isTakeDown) {
             disAbleValue = "Product has been discontinued";
           }
@@ -5665,7 +5673,7 @@ function AddCartButtonStyle(stockIsNull, params) {
           <div class="product_single_add_button product_single_add_button_disabled soldout fx-disable-basic">
             <span>${disAbleValue}</span>
           </div>`;
-      if (stockIsNull || isTakeDown) {
+      if (stockIsNull || isTakeDown || noSku) {
         if (isTakeDown) {
           disAbleValue = "Product has been discontinued";
         }
@@ -6301,6 +6309,7 @@ function indexOf(arr, str) {
   for (let i = 0; i < arr.length; i++) {
     let attrs_string2 = arr[i].attrs_string.replace('"', "");
     attrs_string2 = attrs_string2.replace(/,/, "").split(" ").join("");
+    console.log("对比属性", attrs_string2, str, attrs_string2 === str);
     if (attrs_string2 === str) return i;
   }
   return -1;
@@ -6372,7 +6381,7 @@ function returnedDataProcessing(arrData) {
       findArr = item5.variants.find((item6, index6) => {
         return item6.filterArr.every((val) => item5.arrtsArr.includes(val));
       });
-      if (findArr.length) {
+      if (findArr && findArr.length) {
         let obj = {};
         findArr.attrs.forEach((item8) => {
           obj[item8.name] = item8.value;
