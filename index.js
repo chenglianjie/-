@@ -4856,7 +4856,9 @@ $(function () {
 // 获取combo数据以及插入html
 function getDataAndInsertHtml() {
   // 请求combo详情接口
-  fetch(`${API_SellBUNDELENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${window.location.pathname}`)
+  fetch(
+    `${API_SellBUNDELENDPOINT}/api/getGoodsDetails?shop=${shop}&url=${encodeURIComponent(window.location.pathname)}`
+  )
     .then((response) => response.json())
     .then((res) => {
       console.log("combo详情接口数据", res);
@@ -4976,7 +4978,7 @@ function multipleSelect(selectId = "") {
     });
     suitDom =
       suitDom +
-      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src=${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.png></span><span class=suit-box-close>收起 <img class=suit-icon-img src=${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.png></span>`;
+      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src=${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.svg></span><span class=suit-box-close>收起 <img class=suit-icon-img src=${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.svg></span>`;
     doms = suitDom + doms;
   }
   if (Array.isArray(arr) && arr.length > 0) {
@@ -5067,7 +5069,7 @@ function selectPropertyCombination(selectId = "") {
     });
     suitDom =
       suitDom +
-      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.png'></span>`;
+      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.svg'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.svg'></span>`;
     doms = suitDom + doms;
   }
   // 处理属性组合下拉框渲染数据
@@ -5374,7 +5376,7 @@ function tileRender(selectId = "") {
     });
     suitDom =
       suitDom +
-      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.png'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.png'></span>`;
+      `</div><span class=suit-box-open>展开 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitOpenIcon.svg'></span><span class=suit-box-close>收起 <img class=suit-icon-img src='${ASSET_SellBUNDELEENDPOINT}/suitCloseIcon.svg'></span>`;
     doms = suitDom + doms;
   }
   // 处理平铺渲染数据
