@@ -5268,10 +5268,22 @@ function checkSell(type) {
     let arrId = indexOf(arr[i].variants, str); // 所选的属性（str） 没有在变种数组里面对应上
     // 属性如果没有找到
     if (arrId === -1) {
-      console.warn("属性没有找到"); // noSku 表示没有选择的sku 显示sold out 状态
-      obj = { product_id: arr[i].ID, stock: 0, noSku: true };
+      console.warn("属性没有找到", arr[i], arr[i].variants, str); // noSku 表示没有选择的sku 显示sold out 状态
+      obj = {
+        product_id: arr[i].ID,
+        stock: 0,
+        noSku: true,
+        imgLink: arr[i].image || `${ASSET_SellBUNDELEENDPOINT}/default.png`,
+      };
       if (combination_type === 2) {
-        obj = { product_id: arr[i].ID, stock: 0, number: 0, sale_price: 0, noSku: true };
+        obj = {
+          product_id: arr[i].ID,
+          stock: 0,
+          number: 0,
+          sale_price: 0,
+          noSku: true,
+          imgLink: arr[i].image || `${ASSET_SellBUNDELEENDPOINT}/default.png`,
+        };
       }
       params.push(obj);
       // 继续下一轮循环
@@ -6311,7 +6323,7 @@ function indexOf(arr, str) {
   for (let i = 0; i < arr.length; i++) {
     let attrs_string2 = arr[i].attrs_string.replace('"', "");
     attrs_string2 = attrs_string2.replace(/,/, "").split(" ").join("");
-    console.log("对比属性", attrs_string2, str, attrs_string2 === str);
+    // console.log("对比属性", attrs_string2, str, attrs_string2 === str);
     if (attrs_string2 === str) return i;
   }
   return -1;
