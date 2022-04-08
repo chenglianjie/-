@@ -4811,6 +4811,7 @@ let totalPrice = 0; // combination_type为2时  计算选中商品的总价格
 let goodsSaleType = ""; // 商品优惠类型 (1--百分比减扣,2--一口价,3--固定减扣)
 let goodsDiscount = ""; // 商品优惠值
 let mobilSuitBoxOpen = false; // 移动端suit box是否展开
+let selectOpen = false; // 控制下拉框的展开与收起
 // ----------------------------------------------------------脚本开始----------------------------------------------
 $(function () {
   console.log("jq is readay", theme);
@@ -5176,6 +5177,7 @@ function custormSelect(selectId, type) {
   }
   // 自定义下拉框逻辑
   $(".fx-select").on("click", (event) => {
+    selectOpen = !selectOpen;
     $("body").append(`<div class="fx-mask">mask</div>`);
     $(".fx-list").css({ visibility: "hidden" });
     // 获取当前节点的id
@@ -5189,7 +5191,7 @@ function custormSelect(selectId, type) {
       }
     });
     event.stopPropagation(); // 阻止事件冒泡
-    if ($(`#${currentTargetId}`).next().css("visibility") === "hidden") {
+    if (selectOpen) {
       $(`#${currentTargetId}`).next().css({ visibility: "visible" });
     } else {
       $(`#${currentTargetId}`).next().css({ visibility: "hidden" });
@@ -5199,9 +5201,11 @@ function custormSelect(selectId, type) {
   $(document).on("click", () => {
     $(".fx-list").css({ visibility: "hidden" });
     $(".fx-mask").remove();
+    selectOpen = false;
   });
   // 点击下拉列表的逻辑
   $(".fx-list").on("click", (event) => {
+    selectOpen = false;
     $(".fx-mask").remove();
     // 获取当前点击的id
     let id = event.currentTarget.id;
