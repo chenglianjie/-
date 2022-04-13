@@ -4777,7 +4777,7 @@ function rewirteLog() {
 
 // ------------------------------------------------------sentry 引入-------------------------------------
 var script = document.createElement("script");
-// script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js"); // sentry正式上线url
+// script.setAttribute("src","https://js.sentry-cdn.com/b69687da9f024286acd144688a10b5e4.min.js"); // sentryurl
 script.setAttribute("src", "https://js.sentry-cdn.com/e3ffbc96548a4db58a401a9cbbae68b8.min.js"); // sentry测试url
 script.setAttribute("crossorigin", "anonymous");
 script.setAttribute("data-lazy", "no");
@@ -5353,7 +5353,9 @@ function checkSell(type) {
       totalPrice = goodsDiscount;
     }
     if (goodsSaleType === 3) {
-      totalPrice = totalPrice - goodsDiscount;
+      if (totalPrice > goodsDiscount) {
+        totalPrice = totalPrice - goodsDiscount;
+      }
     }
     totalPrice = Number(totalPrice).toFixed(2);
     // 替换价格
