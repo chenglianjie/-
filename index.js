@@ -5416,7 +5416,7 @@ function tileRender(selectId = "") {
                 ${
                   combination_type === 2 && item.number > 1 ? `<div class="fx-goods-number">x ${item.number}</div>` : ""
                 }
-                <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value='${item.attrs_string[0]}'>
+                <div class="fx-tile-propertyBox fx-tile-propertyBox${index}" data-value="${item.attrs_string[0]}">
                   ${item.attrs_string.reduce((prev, currents, indexs) => {
                     return (
                       prev +
