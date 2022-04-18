@@ -5027,11 +5027,13 @@ function multipleSelect(selectId = "") {
   // 根据主题 挂载在不同的dom上
   if (theme === "default") {
     // Basic 主题
-    $(".deploy__price").after(doms);
-    $(".deploy__line").remove();
+    $(".deploy__line").after(doms);
+    $(".deploy__line").css({ display: "none" });
     // 屏蔽购物车按钮
     $(".post_content").css({ marginTop: "40px" });
-    $(".addcart").css({ display: "none" });
+    $(".addcart .commoditynum").css({ display: "none" });
+    $(".addcart .deploy__button-wrapper").css({ display: "none" });
+    // $(".addcart").css({ display: "none" });
   }
   if (theme === "vogue") {
     // 渲染详情展示页面
@@ -5139,11 +5141,13 @@ function selectPropertyCombination(selectId = "") {
   // 根据主题 挂载在不同的dom上
   if (theme === "default") {
     // Basic 主题
-    $(".deploy__price").after(doms);
-    $(".deploy__line").remove();
+    $(".deploy__line").after(doms);
+    $(".deploy__line").css({ display: "none" });
     // 屏蔽购物车按钮
     $(".post_content").css({ marginTop: "40px" });
-    $(".addcart").css({ display: "none" });
+    $(".addcart .commoditynum").css({ display: "none" });
+    $(".addcart .deploy__button-wrapper").css({ display: "none" });
+    // $(".addcart").css({ display: "none" });
   }
   if (theme === "vogue") {
     // 渲染详情展示页面
@@ -5456,11 +5460,13 @@ function tileRender(selectId = "") {
   // 根据主题 挂载在不同的dom上
   if (theme === "default") {
     // Basic 主题
-    $(".deploy__price").after(doms);
-    $(".deploy__line").remove();
+    $(".deploy__line").after(doms);
+    $(".deploy__line").css({ display: "none" });
     // 屏蔽购物车按钮
     $(".post_content").css({ marginTop: "40px" });
-    $(".addcart").css({ display: "none" });
+    $(".addcart .commoditynum").css({ display: "none" });
+    $(".addcart .deploy__button-wrapper").css({ display: "none" });
+    // $(".addcart").css({ display: "none" });
   }
   if (theme === "vogue") {
     // 渲染详情展示页面
@@ -5595,6 +5601,9 @@ function AddCartButtonStyle(stockIsNull, params) {
         : false;
     // vogue主题
     if (theme === "vogue") {
+      setTimeout(() => {
+        $(".size-chart").css({ display: "none" });
+      }, 1500);
       let textValue = $(".product_single_add_button .secondary_title").html();
       let disAbleValue = "SOLD OUT";
       let normalValue = "ADD TO CART";
@@ -5641,9 +5650,11 @@ function AddCartButtonStyle(stockIsNull, params) {
           if (isTakeDown) {
             disAbleValue = "Product has been discontinued";
           }
-          $(".fx-details-bigBox").after(disAbleButton);
+          // $(".fx-details-bigBox").after(disAbleButton);
+          $(".product_single_add").after(disAbleButton);
         } else {
-          $(".fx-details-bigBox").after(addButton);
+          // $(".fx-details-bigBox").after(addButton);
+          $(".product_single_add").after(addButton);
           if (backgroundColor && textColor) {
             // 背景颜色和文字颜色
             $(".fx-add-button").css("cssText", `border:1px solid ${backgroundColor} !important `);
@@ -5658,11 +5669,17 @@ function AddCartButtonStyle(stockIsNull, params) {
           });
         }
       }
-      // 移除原本整个区域
-      $(".product_add_cart").remove();
+      // 隐藏不需要dom节点
+      $(".product_qty_box").css({ display: "none" }); // 数量加减
+      $(".product_single_add").css({ display: "none" }); // 加入购物车按钮
+      // $(".product_add_cart").remove();
     }
     // basic 主题
     if (theme === "default") {
+      $(".deploy__size-chart").css({ display: "none" });
+      setTimeout(() => {
+        $(".size-chart").css({ display: "none" });
+      }, 1500);
       let disAbleValue = "SOLD OUT";
       let normalValue = "ADD TO CART";
       let backgroundColor = $(".deploy__button-wrapper  .gocart").css("background-color"); // 背景颜色;
@@ -5699,12 +5716,14 @@ function AddCartButtonStyle(stockIsNull, params) {
         }
         if (!document.querySelector(".fx-disable-basic")) {
           $(".basic—addToCartButton").remove();
-          $(".fx-details-bigBox").after(disAbleButton);
+          // $(".fx-details-bigBox").after(disAbleButton);
+          $(".addcart .deploy__button-wrapper").after(disAbleButton);
         }
       } else {
         if (!document.querySelector(".basic—addToCartButton")) {
           $(".fx-disable-basic").remove();
-          $(".fx-details-bigBox").after(addButton);
+          // $(".fx-details-bigBox").after(addButton);
+          $(".addcart .deploy__button-wrapper").after(addButton);
         }
         $(".basic—addToCartButton").off();
         // 重写点击逻辑
@@ -5717,6 +5736,7 @@ function AddCartButtonStyle(stockIsNull, params) {
         "cssText",
         `border:1px solid ${borderColor};color:${textColor};background-color:${backgroundColor}`
       );
+      $(".suit-title").css({ marginTop: "0px" });
     }
   }
 }
