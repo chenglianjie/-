@@ -4877,14 +4877,16 @@ function getDataAndInsertHtml() {
         condition_num = res.data.comboInfo.condition_num; // 最低件数
         // 判断是否隐藏商品详情
         hideGoods = res.data.comboInfo.combo_display_type === 2 ? true : false;
+        goodsDiscount = res.data.comboInfo.discount; // 优惠数字
+        goodsSaleType = res.data.comboInfo.sale_type; // 优惠方式
       }
       if (combination_type === 2) {
         // 捆绑属性combo时 返回商品数据处理
-        goodsSaleType = res.data.comboInfo.sale_type;
+        goodsSaleType = res.data.comboInfo.sale_type; // 优惠方式
         suitarr = res.data.detaile_page_render_data; //  捆绑属性名称渲染
         suitKey = res.data.detaile_page_render_data[0].key; // 当前选中捆绑包key
         selectSuit = res.data.detaile_page_render_data[0]; // // 选中的捆绑属性包
-        goodsDiscount = Number(res.data.detaile_page_render_data[0].discount);
+        goodsDiscount = Number(res.data.detaile_page_render_data[0].discount); // 优惠数字
         arr = returnedDataProcessing(res.data.detaile_page_render_data[0].goodsRenderData);
       }
       comboId = res.data.comboInfo.id; // comboId
@@ -5259,7 +5261,7 @@ function checkSell(type) {
     // 如果没有variants属性
     if (arr[i].variants.length === 0) {
       console.log("没有variants属性的商品对象信息", arr[i]);
-      obj = { product_id: arr[i].ID, stock: arr[i].stock, imgLink: arr[i].image };
+      obj = { product_id: arr[i].ID, stock: arr[i].stock, imgLink: arr[i].image, sale_price: arr[i].sale_price };
       if (combination_type === 2) {
         obj = {
           product_id: arr[i].ID,
@@ -5282,6 +5284,7 @@ function checkSell(type) {
         stock: 0,
         noSku: true,
         imgLink: arr[i].image || `${ASSET_SellBUNDELEENDPOINT}/default.png`,
+        sale_price: 0,
       };
       if (combination_type === 2) {
         obj = {
@@ -5303,7 +5306,7 @@ function checkSell(type) {
     let variant_id = arr[i]["variants"][arrId].ID;
     let stock = arr[i]["variants"][arrId].stock || arr[i].stock;
     let img = arr[i]["variants"][arrId].image || arr[i].image || `${ASSET_SellBUNDELEENDPOINT}/default.png`;
-    obj = { product_id, variant_id, stock, imgLink: img };
+    obj = { product_id, variant_id, stock, imgLink: img, sale_price: arr[i]["variants"][arrId].sale_price };
     if (combination_type === 2) {
       obj = {
         product_id,
@@ -5321,9 +5324,12 @@ function checkSell(type) {
     params.push(obj);
   }
   // 数量默认为配置时 指定的最低件数
-  params.forEach((item) => {
-    item.quantity = condition_num;
-  });
+  if (combination_type === 1) {
+    params.forEach((item) => {
+      item.quantity = condition_num;
+      item.number = condition_num;
+    });
+  }
   // 捆绑属性时，为输入的number数量
   if (combination_type === 2) {
     params.forEach((item) => {
@@ -5343,11 +5349,11 @@ function checkSell(type) {
     $(`.fx-leftImgSelf${index}`).attr("src", imgSrc);
   });
   // 捆绑属性时，总共价格的计算，并渲染到页面上
-  if (combination_type === 2) {
+  if (combination_type === 2 || combination_type === 1) {
     // 总价初始化
     totalPrice = 0;
     params.forEach((item) => {
-      totalPrice += item.sale_price * item.number;
+      totalPrice += Number(item.sale_price) * item.number;
     });
     // (1--百分比减扣,2--一口价,3--固定减扣)
     if (goodsSaleType === 1) {
