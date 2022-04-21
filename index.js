@@ -5370,6 +5370,7 @@ function checkSell(type) {
     totalPrice = Number(totalPrice).toFixed(2);
     // 替换价格
     if (document.querySelector(".money")) {
+      $(".product_price_cross").remove();
       if (theme === "vogue") {
         priceSymbolString = document.querySelector(".product-right .money").childNodes[0].innerHTML || "$";
         // priceSymbolEnd = $(".money span").last().text();
